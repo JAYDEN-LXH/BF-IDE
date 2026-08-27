@@ -3,6 +3,8 @@
 // =======================================
 
 const themeswitch = document.getElementById('themeswitch');
+const toolbarToggle = document.getElementById('toolbar-toggle');
+const toolbarOverlay = document.getElementById('toolbar-overlay');
 const body = document.body;
 const code = document.getElementById('code-bg');
 const IDEarea = document.getElementById('textarea');
@@ -12,7 +14,6 @@ const highlightCode = document.getElementById('highlightCode');
 let debug = true; // this is shared!
 
 // New DOM refs
-const toolbar = document.getElementById('toolbar');
 const tapeEl = document.getElementById('tape');
 const outputEl = document.getElementById('output');
 const terminalInput = document.getElementById('terminal-input');
@@ -23,6 +24,9 @@ const btnStep = document.getElementById('btn-step');
 const btnStepBack = document.getElementById('btn-step-back');
 const btnReset = document.getElementById('btn-reset');
 const btnDone = document.getElementById('btn-done');
+const toolModePanel = document.getElementById('tool-mode-panel');
+const toolModePos = document.getElementById('tool-mode-pos');
+const toolModeChar = document.getElementById('tool-mode-char');
 const fileInput = document.getElementById('file-input');
 const settingsModal = document.getElementById('settings-modal');
 const helpModal = document.getElementById('help-modal');
@@ -34,6 +38,7 @@ const settingFontsize = document.getElementById('setting-fontsize');
 const settingFontsizeValue = document.getElementById('setting-fontsize-value');
 const settingShowBg = document.getElementById('setting-show-bg');
 const settingPauseOnInput = document.getElementById('setting-pause-on-input');
+const settingSkipComments = document.getElementById('setting-skip-comments');
 const btnSaveThemePrefs = document.getElementById('btn-save-theme-prefs');
 const btnClearThemePrefs = document.getElementById('btn-clear-theme-prefs');
 const themePrefsStatus = document.getElementById('theme-prefs-status');
@@ -109,7 +114,8 @@ const STATUS_MAP = {
     ready: 'Ready',
     running: 'Running',
     paused: 'Paused',
-    waiting: 'Waiting'
+    waiting: 'Waiting',
+    finished: 'Finished'
 }
 
 const HELLO_WORLD_BF = '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.';
@@ -144,6 +150,10 @@ const bfState = {
     breakpointMode: false,
     skipBreakpointOnce: false,
 
+    // 工具模式（预断点位置，手机端精确放置断点）
+    toolMode: false,
+    preBreakpoint: null, // raw index into codeInput.value, or null
+
     // 错误信息（运行时限制触发时显示）
     errorMsg: '',
 
@@ -165,6 +175,7 @@ const bfState = {
         saveThemePreference: false,
         stepIntervalMs: DEFAULT_STEP_INTERVAL_MS,
         pauseOnInput: true,
+        skipComments: true, // tool mode: skip non-command chars when moving
         syntax: {
             dark: cloneSyntax(DARK_SYNTAX_DEFAULT),
             light: cloneSyntax(LIGHT_SYNTAX_DEFAULT)
@@ -220,6 +231,10 @@ function getSpanHTML(char, index) {
         // Breakpoints are stored as raw indices.
         if (bfState.breakpoints.has(index)) extra += ' breakpoint';
         if (bfState.unmatchedBrackets.has(index)) extra += ' unmatched-bracket';
+        // Pre-breakpoint position (tool mode) — also a raw index.
+        if (bfState.toolMode && bfState.preBreakpoint !== null && index === bfState.preBreakpoint) {
+            extra += ' pre-breakpoint';
+        }
     }
     const clsAttr = extra ? ` class="${extra.trim()}"` : '';
     const styleAttr = style ? ` style="${style}"` : '';
@@ -714,7 +729,15 @@ function updateUI() {
     if (bfState.errorMsg) {
         dbgStatus.textContent = bfState.errorMsg;
     } else {
-        dbgStatus.innerHTML = `Status: <span class="dbg-status-${bfState.status}">${STATUS_MAP[bfState.status]}</span> | IP: ${bfState.ip} | Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
+        let statusText;
+        if (bfState.toolMode) {
+            statusText = 'Breakpoint (Tool)';
+        } else if (bfState.breakpointMode) {
+            statusText = 'Breakpoint (Click)';
+        } else {
+            statusText = `<span class="dbg-status-${bfState.status}">${STATUS_MAP[bfState.status]}</span>`;
+        }
+        dbgStatus.innerHTML = `Status: ${statusText} | IP: ${bfState.ip} | Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
     }
 
     // Button enabled/disabled states
@@ -732,7 +755,14 @@ function updateUI() {
 function toggleBreakpointMode() {
     bfState.breakpointMode = !bfState.breakpointMode;
     body.classList.toggle('bp-mode', bfState.breakpointMode);
+    // Auto-close BP Tool Mode (mutually exclusive).
+    if (bfState.breakpointMode && bfState.toolMode) {
+        bfState.toolMode = false;
+        body.classList.remove('tool-mode');
+        toolModePanel.hidden = true;
+    }
     l(`Breakpoint mode: ${bfState.breakpointMode}`);
+    updateUI();
 }
 
 function toggleBreakpoint(ip) {
@@ -750,6 +780,90 @@ function clearAllBreakpoints() {
     updateHighlight();
     updateUI();
 }
+
+// =======================================
+// TOOL MODE (pre-breakpoint placement for mobile)
+// =======================================
+
+function toggleToolMode() {
+    bfState.toolMode = !bfState.toolMode;
+    body.classList.toggle('tool-mode', bfState.toolMode);
+    if (bfState.toolMode) {
+        // Initialize pre-breakpoint at the first command (or start of code).
+        if (bfState.preBreakpoint === null || bfState.preBreakpoint >= codeInput.value.length) {
+            bfState.preBreakpoint = findNextCommand(-1, 1);
+        }
+        toolModePanel.hidden = false;
+        // Auto-close BP Click Mode (mutually exclusive).
+        if (bfState.breakpointMode) {
+            bfState.breakpointMode = false;
+            body.classList.remove('bp-mode');
+        }
+    } else {
+        toolModePanel.hidden = true;
+    }
+    updateToolModeUI();
+    updateHighlight();
+    updateUI();
+}
+
+// Find the raw index of the next/prev BF command starting from `from`.
+// dir = +1 (forward) or -1 (backward). If skipComments is false, returns from+dir.
+function findNextCommand(from, dir) {
+    const code = codeInput.value;
+    if (!bfState.config.skipComments) {
+        const next = from + dir;
+        if (next < 0 || next >= code.length) return from;
+        return next;
+    }
+    let i = from + dir;
+    while (i >= 0 && i < code.length) {
+        if (BF_COMMANDS.indexOf(code[i]) !== -1) return i;
+        i += dir;
+    }
+    return from; // out of range — stay put
+}
+
+function movePreBreakpoint(dir, fast) {
+    if (bfState.preBreakpoint === null) {
+        bfState.preBreakpoint = findNextCommand(-1, 1);
+    } else {
+        const steps = fast ? 5 : 1;
+        for (let s = 0; s < steps; s++) {
+            const next = findNextCommand(bfState.preBreakpoint, dir);
+            if (next === bfState.preBreakpoint) break; // can't move further
+            bfState.preBreakpoint = next;
+        }
+    }
+    updateToolModeUI();
+    updateHighlight();
+}
+
+function confirmPreBreakpoint() {
+    if (bfState.preBreakpoint === null) return;
+    toggleBreakpoint(bfState.preBreakpoint);
+}
+
+function updateToolModeUI() {
+    if (bfState.preBreakpoint !== null) {
+        const code = codeInput.value;
+        const ch = code[bfState.preBreakpoint];
+        toolModePos.textContent = String(bfState.preBreakpoint);
+        toolModeChar.textContent = ch !== undefined ? JSON.stringify(ch) : '';
+    } else {
+        toolModePos.textContent = '—';
+        toolModeChar.textContent = '';
+    }
+}
+
+document.getElementById('tool-step-back').addEventListener('click', () => movePreBreakpoint(-1, false));
+document.getElementById('tool-step-fwd').addEventListener('click', () => movePreBreakpoint(1, false));
+document.getElementById('tool-fast-back').addEventListener('click', () => movePreBreakpoint(-1, true));
+document.getElementById('tool-fast-fwd').addEventListener('click', () => movePreBreakpoint(1, true));
+document.getElementById('tool-confirm').addEventListener('click', confirmPreBreakpoint);
+document.getElementById('tool-mode-close').addEventListener('click', () => {
+    if (bfState.toolMode) toggleToolMode();
+});
 
 // =======================================
 // FILE MENU
@@ -833,35 +947,8 @@ function handleFileLoad(file) {
 }
 
 // =======================================
-// MENU DROPDOWN LOGIC
+// TOOLBAR OVERLAY
 // =======================================
-
-function closeAllMenus() {
-    document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open'));
-}
-
-toolbar.addEventListener('click', (e) => {
-    const trigger = e.target.closest('.menu-trigger');
-    if (trigger) {
-        const menu = trigger.parentElement;
-        const wasOpen = menu.classList.contains('open');
-        closeAllMenus();
-        if (!wasOpen) menu.classList.add('open');
-        e.stopPropagation();
-        return;
-    }
-    const item = e.target.closest('.menu-dropdown button');
-    if (item) {
-        const action = item.dataset.action;
-        closeAllMenus();
-        handleMenuAction(action);
-        return;
-    }
-});
-
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.menu')) closeAllMenus();
-});
 
 function handleMenuAction(action) {
     switch (action) {
@@ -869,11 +956,69 @@ function handleMenuAction(action) {
         case 'load-file': actionLoadFile(); break;
         case 'load-hello': actionLoadHello(); break;
         case 'breakpoint-mode': toggleBreakpointMode(); break;
+        case 'tool-mode': toggleToolMode(); break;
         case 'clear-breakpoints': clearAllBreakpoints(); break;
         case 'open-settings': openSettings(); break;
         case 'open-help': openHelp(); break;
     }
 }
+
+function isToolbarOverlayOpen() {
+    return !toolbarOverlay.hidden && toolbarOverlay.classList.contains('open');
+}
+
+function openToolbarOverlay() {
+    toolbarOverlay.hidden = false;
+    // Force reflow so the transition plays.
+    void toolbarOverlay.offsetHeight;
+    toolbarOverlay.classList.add('open');
+    toolbarToggle.setAttribute('aria-expanded', 'true');
+    toolbarToggle.querySelector('.icon-menu').setAttribute('hidden', '');
+    toolbarToggle.querySelector('.icon-close').removeAttribute('hidden');
+}
+
+function closeToolbarOverlay() {
+    toolbarOverlay.classList.remove('open');
+    toolbarToggle.setAttribute('aria-expanded', 'false');
+    toolbarToggle.querySelector('.icon-menu').removeAttribute('hidden');
+    toolbarToggle.querySelector('.icon-close').setAttribute('hidden', '');
+    // Hide after the slide-out transition completes.
+    window.setTimeout(() => {
+        if (!toolbarOverlay.classList.contains('open')) {
+            toolbarOverlay.hidden = true;
+        }
+    }, 260);
+}
+
+function toggleToolbarOverlay() {
+    if (isToolbarOverlayOpen()) {
+        closeToolbarOverlay();
+    } else {
+        openToolbarOverlay();
+    }
+}
+
+toolbarToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleToolbarOverlay();
+});
+
+// Click a menu item inside the overlay: run its action then close the overlay.
+toolbarOverlay.addEventListener('click', (e) => {
+    const item = e.target.closest('button[data-action]');
+    if (item) {
+        const action = item.dataset.action;
+        closeToolbarOverlay();
+        handleMenuAction(action);
+    }
+});
+
+// Click outside the overlay closes it (the button click is stopped above).
+document.addEventListener('click', (e) => {
+    if (!isToolbarOverlayOpen()) return;
+    if (e.target.closest('#toolbar-overlay') || e.target.closest('#toolbar-toggle')) return;
+    closeToolbarOverlay();
+});
 
 // =======================================
 // SETTINGS PANEL
@@ -958,6 +1103,7 @@ function openSettings() {
         saveThemePreference: bfState.config.saveThemePreference,
         stepIntervalMs: bfState.config.stepIntervalMs,
         pauseOnInput: bfState.config.pauseOnInput,
+        skipComments: bfState.config.skipComments,
         syntax: {
             dark: cloneSyntax(bfState.config.syntax.dark),
             light: cloneSyntax(bfState.config.syntax.light)
@@ -992,6 +1138,7 @@ function openSettings() {
     settingFontsizeValue.value = bfState.config.fontSize;
     settingShowBg.checked = bfState.config.showBackground;
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
+    settingSkipComments.checked = bfState.config.skipComments;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
     updateThemePrefsStatus();
@@ -1017,6 +1164,7 @@ function cancelSettings() {
         bfState.config.saveThemePreference = s.saveThemePreference;
         bfState.config.stepIntervalMs = s.stepIntervalMs;
         bfState.config.pauseOnInput = s.pauseOnInput;
+        bfState.config.skipComments = s.skipComments;
         bfState.config.syntax.dark = cloneSyntax(s.syntax.dark);
         bfState.config.syntax.light = cloneSyntax(s.syntax.light);
         applyTheme(s.theme);
@@ -1037,6 +1185,7 @@ function restoreDefaults() {
     bfState.config.saveThemePreference = false;
     bfState.config.stepIntervalMs = DEFAULT_STEP_INTERVAL_MS;
     bfState.config.pauseOnInput = true;
+    bfState.config.skipComments = true;
     bfState.config.syntax.dark = cloneSyntax(DARK_SYNTAX_DEFAULT);
     bfState.config.syntax.light = cloneSyntax(LIGHT_SYNTAX_DEFAULT);
 
@@ -1046,6 +1195,7 @@ function restoreDefaults() {
     settingFontsizeValue.value = bfState.config.fontSize;
     settingShowBg.checked = bfState.config.showBackground;
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
+    settingSkipComments.checked = bfState.config.skipComments;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
 
@@ -1092,6 +1242,9 @@ function saveSettings() {
 
     // pause on input
     bfState.config.pauseOnInput = settingPauseOnInput.checked;
+
+    // skip comments in tool mode
+    bfState.config.skipComments = settingSkipComments.checked;
 
     // run speed (immediate effect: restart the run interval if currently running)
     const stepMs = parseInt(settingStepInterval.value, 10);
@@ -1204,6 +1357,7 @@ function persistConfig() {
             showBackground: bfState.config.showBackground,
             stepIntervalMs: bfState.config.stepIntervalMs,
             pauseOnInput: bfState.config.pauseOnInput,
+            skipComments: bfState.config.skipComments,
             syntax: {
                 dark: bfState.config.syntax.dark,
                 light: bfState.config.syntax.light
@@ -1228,6 +1382,7 @@ function loadConfig() {
             if (typeof saved.showBackground === 'boolean') bfState.config.showBackground = saved.showBackground;
             if (typeof saved.stepIntervalMs === 'number' && saved.stepIntervalMs >= 8 && saved.stepIntervalMs <= 1000) bfState.config.stepIntervalMs = saved.stepIntervalMs;
             if (typeof saved.pauseOnInput === 'boolean') bfState.config.pauseOnInput = saved.pauseOnInput;
+            if (typeof saved.skipComments === 'boolean') bfState.config.skipComments = saved.skipComments;
 
             // Nested per-theme syntax stored in bf-config
             if (saved.syntax) {
@@ -1310,7 +1465,14 @@ function toggleTheme() {
 
 themeswitch.addEventListener('click', toggleTheme);
 
-codeInput.addEventListener('input', updateHighlight);
+codeInput.addEventListener('input', () => {
+    // Keep pre-breakpoint position valid if the code was edited.
+    if (bfState.toolMode && bfState.preBreakpoint !== null && bfState.preBreakpoint >= codeInput.value.length) {
+        bfState.preBreakpoint = Math.max(0, codeInput.value.length - 1);
+        updateToolModeUI();
+    }
+    updateHighlight();
+});
 
 codeInput.addEventListener('scroll', () => {
     const code = document.getElementById('highlightCode');
@@ -1352,20 +1514,40 @@ fileInput.addEventListener('change', () => {
     handleFileLoad(file);
 });
 
-// Breakpoint clicks (only active in breakpoint mode via CSS pointer-events)
+// Breakpoint / Tool mode clicks (highlight layer receives clicks via CSS pointer-events)
 highlightCode.addEventListener('click', (e) => {
-    if (!bfState.breakpointMode) return;
+    // Determine whether the click landed on a character span (has data-ip) or blank area.
     let target = e.target;
+    let charIp = null;
     while (target && target !== highlightCode) {
         if (target.dataset && target.dataset.ip !== undefined) {
             const ip = parseInt(target.dataset.ip, 10);
-            if (!isNaN(ip)) {
-                toggleBreakpoint(ip);
-                e.preventDefault();
-            }
-            return;
+            if (!isNaN(ip)) { charIp = ip; }
+            break;
         }
         target = target.parentElement;
+    }
+
+    // BP Click Mode: toggle breakpoint on the clicked character.
+    if (bfState.breakpointMode) {
+        if (charIp !== null) {
+            toggleBreakpoint(charIp);
+            e.preventDefault();
+        }
+        return;
+    }
+
+    // BP Tool Mode: character click moves the pre-breakpoint; blank click exits tool mode.
+    if (bfState.toolMode) {
+        if (charIp !== null) {
+            bfState.preBreakpoint = charIp;
+            updateToolModeUI();
+            updateHighlight();
+        } else {
+            // Blank area — close tool mode.
+            toggleToolMode();
+        }
+        e.preventDefault();
     }
 });
 
@@ -1444,6 +1626,25 @@ window.addEventListener('resize', () => {
 });
 
 // =======================================
+// VISUAL VIEWPORT — detect on-screen keyboard (mobile)
+// =======================================
+function updateKeyboardState() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    // Keyboard is likely open when the visual viewport shrinks significantly
+    // relative to the layout viewport (keyboard takes ~30-50% of screen).
+    // Use a ratio + absolute floor to avoid false positives on desktop webviews
+    // where innerHeight and visualViewport.height can differ slightly.
+    const keyboardOpen = vv.height < window.innerHeight * 0.7;
+    body.classList.toggle('keyboard-open', keyboardOpen);
+}
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateKeyboardState);
+    window.visualViewport.addEventListener('scroll', updateKeyboardState);
+}
+window.addEventListener('resize', updateKeyboardState);
+
+// =======================================
 // KEYBOARD SHORTCUTS
 // =======================================
 
@@ -1455,12 +1656,13 @@ document.addEventListener('keydown', (e) => {
 
     const ctrl = e.ctrlKey || e.metaKey;
     const shift = e.shiftKey;
+    const alt = e.altKey;
 
     // Escape closes any open modal or menu
     if (e.key === 'Escape') {
+        if (isToolbarOverlayOpen()) { closeToolbarOverlay(); e.preventDefault(); return; }
         if (!settingsModal.hidden) { cancelSettings(); e.preventDefault(); return; }
         if (!helpModal.hidden) { closeHelp(); e.preventDefault(); return; }
-        closeAllMenus();
         return;
     }
 
@@ -1495,52 +1697,59 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Ctrl+Shift+R — Reset
-    if (ctrl && shift && (e.key === 'R' || e.key === 'r')) {
+    // Ctrl+Alt+R — Reset
+    if (ctrl && alt && (e.key === 'R' || e.key === 'r')) {
         e.preventDefault();
         resetSession();
         return;
     }
 
-    // Ctrl+Shift+D — Done
-    if (ctrl && shift && (e.key === 'D' || e.key === 'd')) {
+    // Ctrl+Alt+D — Done
+    if (ctrl && alt && (e.key === 'D' || e.key === 'd')) {
         e.preventDefault();
         endSession();
         return;
     }
 
-    // Ctrl+Shift+N — Start Over
-    if (ctrl && shift && (e.key === 'N' || e.key === 'n')) {
+    // Ctrl+Alt+N — Start Over
+    if (ctrl && alt && (e.key === 'N' || e.key === 'n')) {
         e.preventDefault();
         actionStartOver();
         return;
     }
 
     // Ctrl+O — Load file
-    if (ctrl && !shift && (e.key === 'O' || e.key === 'o')) {
+    if (ctrl && !shift && !alt && (e.key === 'O' || e.key === 'o')) {
         e.preventDefault();
         actionLoadFile();
         return;
     }
 
-    // Ctrl+Shift+H — Load Hello World
-    if (ctrl && shift && (e.key === 'H' || e.key === 'h')) {
+    // Ctrl+Alt+H — Load Hello World
+    if (ctrl && alt && (e.key === 'H' || e.key === 'h')) {
         e.preventDefault();
         actionLoadHello();
         return;
     }
 
     // Ctrl+B — Toggle breakpoint mode
-    if (ctrl && !shift && (e.key === 'B' || e.key === 'b')) {
+    if (ctrl && !shift && !alt && (e.key === 'B' || e.key === 'b')) {
         e.preventDefault();
         toggleBreakpointMode();
         return;
     }
 
-    // Ctrl+Shift+B — Clear all breakpoints
-    if (ctrl && shift && (e.key === 'B' || e.key === 'b')) {
+    // Ctrl+Alt+B — Clear all breakpoints
+    if (ctrl && alt && (e.key === 'B' || e.key === 'b')) {
         e.preventDefault();
         clearAllBreakpoints();
+        return;
+    }
+
+    // Ctrl+Alt+T — Toggle BP Tool Mode
+    if (ctrl && alt && (e.key === 'T' || e.key === 't')) {
+        e.preventDefault();
+        toggleToolMode();
         return;
     }
 

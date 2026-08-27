@@ -45,7 +45,7 @@
    ============================================================ */
 .shortcut {
     color: #aaa;
-    
+    font-size: 0.8rem;
     margin-left: 18px;
     white-space: nowrap;
 }
@@ -60,10 +60,6 @@ body.bp-mode #textarea {
 body.bp-mode .highlight-layer { pointer-events: auto; }
 body.bp-mode #codeInput { pointer-events: none; }
 
-/* Tool mode also routes clicks to the highlight layer so char/blank clicks can be detected */
-body.tool-mode .highlight-layer { pointer-events: auto; }
-body.tool-mode #codeInput { pointer-events: none; }
-
 /* ============================================================
    DEBUGGER PANEL
    ============================================================ */
@@ -72,9 +68,7 @@ body.tool-mode #codeInput { pointer-events: none; }
     flex-direction: column;
     padding: 12px;
     box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-width: none;
+    overflow: hidden;
 }
 
 .dbg-section {
@@ -84,7 +78,7 @@ body.tool-mode #codeInput { pointer-events: none; }
 .dbg-title {
     font-weight: bold;
     margin-bottom: 6px;
-    
+    font-size: 1rem;
     opacity: 0.9;
 }
 
@@ -110,11 +104,11 @@ body.tool-mode #codeInput { pointer-events: none; }
     align-items: center;
     justify-content: center;
     padding: 2px 4px;
-    
+    font-size: 0.85rem;
 }
 
 .tape-cell .cell-idx {
-    
+    font-size: 0.7rem;
     opacity: 0.6;
 }
 
@@ -148,7 +142,7 @@ body.tool-mode #codeInput { pointer-events: none; }
     border-radius: 6px;
     color: inherit;
     font-family: inherit;
-    
+    font-size: 0.95rem;
 }
 
 .terminal-input:disabled {
@@ -180,7 +174,7 @@ body.tool-mode #codeInput { pointer-events: none; }
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    
+    font-size: 0.9rem;
     opacity: 0.6;
     transition: opacity 0.2s;
 }
@@ -219,7 +213,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    
+    font-size: 0.9rem;
 }
 
 .dbg-controls button:hover {
@@ -248,7 +242,7 @@ body.light-theme .terminal-send:not(:disabled) {
     background: rgba(0, 0, 0, 0.25);
     border: 1px solid #555;
     border-radius: 6px;
-    
+    font-size: 0.85rem;
     font-family: inherit;
     opacity: 0.95;
 }
@@ -262,85 +256,6 @@ body.light-theme .terminal-send:not(:disabled) {
 .dbg-status-running { color: #00EEFF; }
 .dbg-status-paused { color: #EEEE11; }
 .dbg-status-waiting { color: #FF7700; }
-
-/* Tool mode panel (mobile breakpoint placement) */
-.tool-mode-panel {
-    margin: 6px 0;
-    padding: 8px;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid #555;
-    border-radius: 6px;
-}
-.tool-mode-info {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    font-family: inherit;
-}
-.tool-mode-char {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 0 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-weight: bold;
-}
-.tool-mode-buttons {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-.tool-mode-buttons button {
-    flex: 1 1 auto;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 6px;
-    background: #555;
-    color: #fff;
-    border: 1px solid #333;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 1rem;
-}
-.tool-mode-buttons button:hover { background: #666; }
-.tool-mode-buttons .tool-confirm {
-    background: #2e7d32;
-    border-color: #1b5e20;
-}
-.tool-mode-buttons .tool-confirm:hover { background: #388e3c; }
-
-.tool-mode-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #444;
-}
-.tool-mode-hint {
-    font-size: 0.8rem;
-    color: #aaa;
-    font-family: inherit;
-}
-#tool-mode-close {
-    min-height: 36px;
-    padding: 6px 16px;
-    background: #555;
-    color: #fff;
-    border: 1px solid #333;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9rem;
-}
-#tool-mode-close:hover { background: #666; }
-
-/* Pre-breakpoint highlight in the editor */
-.pre-breakpoint {
-    outline: 2px dashed #ff9800;
-    outline-offset: 1px;
-    background: rgba(255, 152, 0, 0.25) !important;
-}
 
 /* ============================================================
    MODALS
@@ -376,7 +291,7 @@ body.light-theme .terminal-send:not(:disabled) {
     margin: 0;
     padding: 14px 18px;
     border-bottom: 1px solid #444;
-    
+    font-size: 1.2rem;
 }
 
 .modal-body {
@@ -429,7 +344,7 @@ body.light-theme .terminal-send:not(:disabled) {
 .help-icon {
     display: inline-block;
     margin-left: 4px;
-    
+    font-size: 0.8rem;
     opacity: 0.65;
     cursor: help;
 }
@@ -442,7 +357,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 4px;
     color: inherit;
     font-family: inherit;
-    
+    font-size: 0.85rem;
     text-align: center;
 }
 
@@ -461,7 +376,7 @@ body.light-theme .num-value {
 
 .theme-prefs-actions button {
     padding: 4px 10px;
-    
+    font-size: 0.8rem;
     border-radius: 4px;
     border: 1px solid #555;
     background: #2a2a2a;
@@ -474,7 +389,7 @@ body.light-theme .num-value {
 }
 
 .theme-prefs-status {
-    
+    font-size: 0.8rem;
     opacity: 0.85;
 }
 
@@ -508,7 +423,7 @@ body.light-theme .theme-prefs-actions button:hover {
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    
+    font-size: 0.9rem;
 }
 .syn-tab.active {
     background: #1565c0;
@@ -528,7 +443,7 @@ body.light-theme .theme-prefs-actions button:hover {
 }
 .syntax-table th {
     font-weight: bold;
-    
+    font-size: 0.85rem;
     opacity: 0.8;
 }
 .syntax-table .syn-char {
@@ -582,8 +497,7 @@ body,
 body {
     background-color: #111;
     color: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     padding: 0;
     font-family: 'Consolas', monospace !important;
@@ -596,7 +510,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    
+    font-size: 1.2rem;
     line-height: 1.6rem;
     margin: 0;
     padding-left: 15px;
@@ -652,7 +566,7 @@ body {
 #themeswitch {
     position: absolute;
     top: 50%;
-    
+    font-size: 5vh;
     margin: 0;
     padding: 0;
     transform: translateY(-50%);
@@ -743,7 +657,7 @@ body.light-theme .toolbar-overlay {
 }
 .toolbar-section-label {
     font-weight: bold;
-    
+    font-size: 0.9rem;
     opacity: 0.7;
     margin: 8px 4px;
     text-transform: uppercase;
@@ -756,7 +670,7 @@ body.light-theme .toolbar-overlay {
     background: transparent;
     border: 1px solid transparent;
     color: inherit;
-    
+    font-size: 1.2rem;
     padding: 12px 20px;
     min-height: 44px;
     border-radius: 6px;
@@ -811,7 +725,7 @@ body.light-theme .toolbar-section button:focus-visible {
     margin: 0.5rem auto auto auto;
     display: inline-block;
     position: relative;
-    
+    font-size: 1.3rem;
     flex-shrink: 0;
 }
 
@@ -834,7 +748,7 @@ body.light-theme .toolbar-section button:focus-visible {
     height: 100%;
     margin: 0;
     padding: 0;
-    
+    font-size: 16px;
     line-height: 1.6;
     tab-size: 2;
     white-space: pre-wrap;
@@ -1014,6 +928,9 @@ body.light-theme .terminal-input:not(:disabled) {
 
 /* MEDIA RESPONSIVE STYLESHEET */
 @media (max-width: 1200px) {
+    body {
+        font-size: 1.5em;
+    }
     .toolbar-section {
         flex: 1 0 40%;
     }
@@ -1030,102 +947,5 @@ body.light-theme .terminal-input:not(:disabled) {
         left: 50%;
         transform: translateX(-50%);
         top: 13vh;
-    }
-}
-
-/* ============================================================
-   MOBILE (<= 768px) OPTIMIZATIONS
-   ============================================================ */
-@media (max-width: 768px) {
-    /* Pain 1: header — simplify title, larger touch targets, safe padding */
-    #header {
-        padding: 0 12px;
-        box-sizing: border-box;
-    }
-    #mainTitle {
-        font-size: 0;
-    }
-    #mainTitle::before {
-        content: "BF";
-        font-size: 1.3rem;
-        display: inline-block;
-    }
-    .toolbar-toggle {
-        right: calc(44px + 18px);
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-    }
-    #themeswitch {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-    }
-
-    /* Pain 2: keyboard-open compresses debugger to status bar only */
-    body.keyboard-open #debugger {
-        height: auto !important;
-        min-height: 0;
-    }
-    body.keyboard-open #debugger .dbg-section,
-    body.keyboard-open #debugger .dbg-controls,
-    body.keyboard-open #debugger .tool-mode-panel {
-        display: none;
-    }
-    body.keyboard-open #debugger .dbg-status {
-        display: block;
-    }
-    body.keyboard-open #textarea {
-        height: auto !important;
-        bottom: 0;
-    }
-
-    /* Pain 4: tape cell readability */
-    .tape-cell {
-        min-width: 28px;
-        padding: 2px;
-    }
-    .tape-cell .cell-val {
-        font-size: 1rem;
-    }
-    .tape-cell .cell-idx {
-        font-size: 0.5rem;
-    }
-    .tape-cell.tape-pointer {
-        border: 3px solid #0ff;
-    }
-
-    /* Pain 5: output + terminal */
-    .output {
-        max-height: 20vh;
-    }
-    .terminal-row {
-        flex-direction: row;
-    }
-    .terminal-send {
-        min-height: 44px;
-        padding: 8px 16px;
-    }
-
-    /* Pain 6: settings modal full-screen */
-    .modal {
-        width: 100vw !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        border-radius: 0;
-    }
-    .modal-body {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    input[type="range"] {
-        min-height: 44px;
-    }
-    .setting-row input[type="text"],
-    .setting-row input[type="number"],
-    .setting-row select {
-        min-height: 40px;
     }
 }

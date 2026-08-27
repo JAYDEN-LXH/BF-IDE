@@ -8,35 +8,66 @@
         <div id="code-bg-margin"></div>
         <pre class="code-bg" id="code-bg"></pre>
         <div id="header">
-                <h1 id="mainTitle">Online BF</h1>
-                <div id="toolbar" class="menu-group">
-                        <div class="menu" data-menu="file">
-                                <button class="menu-trigger" type="button">File ▼</button>
-                                <div class="menu-dropdown" role="menu">
-                                        <button type="button" data-action="start-over">Start Over<span class="shortcut">Ctrl+Shift+N</span></button>
-                                        <button type="button" data-action="load-file">Load file...<span class="shortcut">Ctrl+O</span></button>
-                                        <button type="button" data-action="load-hello">Load "Hello, World!"<span class="shortcut">Ctrl+Shift+H</span></button>
-                                </div>
+            <h1 id="mainTitle">Online BF</h1>
+            <button id="toolbar-toggle" class="toolbar-toggle" type="button" title="Toggle Toolbar" aria-label="Toggle Toolbar" aria-expanded="false" aria-controls="toolbar-overlay">
+                <svg class="icon-menu"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="width: 60%; height: 60%;">
+
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    <svg class="icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+                <div id="toolbar-overlay" class="toolbar-overlay" hidden>
+                    <div class="toolbar-overlay-inner">
+                        <div class="toolbar-section">
+                            <div class="toolbar-section-label">File</div>
+                            <button type="button" data-action="start-over">
+                                Start Over <span class="shortcut">Ctrl+Alt+N</span>
+                            </button>
+                            <button type="button" data-action="load-file">
+                                Load file... <span class="shortcut">Ctrl+O</span>
+                            </button>
+                            <button type="button" data-action="load-hello">
+                                Load "Hello, World!" <span class="shortcut">Ctrl+Alt+H</span>
+                            </button>
                         </div>
-                        <div class="menu" data-menu="breakpoints">
-                                <button class="menu-trigger" type="button">Breakpoints ▼</button>
-                                <div class="menu-dropdown" role="menu">
-                                        <button type="button" data-action="breakpoint-mode">Breakpoint mode<span class="shortcut">Ctrl+B</span></button>
-                                        <button type="button" data-action="clear-breakpoints">Clear all breakpoints<span class="shortcut">Ctrl+Shift+B</span></button>
-                                </div>
+                        <div class="toolbar-section">
+                            <div class="toolbar-section-label">Breakpoints</div>
+                            <button type="button" data-action="breakpoint-mode">
+                                BP Click Mode <span class="shortcut">Ctrl+B</span>
+                            </button>
+                            <button type="button" data-action="tool-mode">
+                                BP Tool Mode <span class="shortcut">Ctrl+Alt+T</span>
+                            </button>
+                            <button type="button" data-action="clear-breakpoints">
+                                Clear All Breakpoints <span class="shortcut">Ctrl+Alt+B</span>
+                            </button>
                         </div>
-                        <div class="menu" data-menu="settings">
-                                <button class="menu-trigger" type="button">Settings ▼</button>
-                                <div class="menu-dropdown" role="menu">
-                                        <button type="button" data-action="open-settings">Open settings...<span class="shortcut">Ctrl+,</span></button>
-                                </div>
+                        <div class="toolbar-section">
+                            <div class="toolbar-section-label">Settings</div>
+                            <button type="button" data-action="open-settings">
+                                Open settings... <span class="shortcut">Ctrl+,</span>
+                            </button>
                         </div>
-                        <div class="menu" data-menu="help">
-                                <button class="menu-trigger" type="button">Help ▼</button>
-                                <div class="menu-dropdown" role="menu">
-                                        <button type="button" data-action="open-help">Open help...<span class="shortcut">F1</span></button>
-                                </div>
+                        <div class="toolbar-section">
+                            <div class="toolbar-section-label">Help</div>
+                            <button type="button" data-action="open-help">
+                                Open help... <span class="shortcut">F1</span>
+                            </button>
                         </div>
+                    </div>
                 </div>
                 <button id="themeswitch" title="Dark / Light">
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -76,8 +107,25 @@
                         <button type="button" id="btn-run" title="Run (F5)">Run</button>
                         <button type="button" id="btn-step" title="Step Over (F10)">Step</button>
                         <button type="button" id="btn-step-back" title="Step Back (F9)">Step Back</button>
-                        <button type="button" id="btn-reset" title="Reset (Ctrl+Shift+R)">Reset</button>
-                        <button type="button" id="btn-done" title="Done (Ctrl+Shift+D)">Done</button>
+                        <button type="button" id="btn-reset" title="Reset (Ctrl+Alt+R)">Reset</button>
+                        <button type="button" id="btn-done" title="Done (Ctrl+Alt+D)">Done</button>
+                </div>
+                <div id="tool-mode-panel" class="tool-mode-panel" hidden>
+                        <div class="tool-mode-info">
+                                Pre-breakpoint: <span id="tool-mode-pos">—</span>
+                                <span id="tool-mode-char" class="tool-mode-char"></span>
+                        </div>
+                        <div class="tool-mode-buttons">
+                                <button type="button" id="tool-fast-back" title="Move back 5 commands">⟪</button>
+                                <button type="button" id="tool-step-back" title="Move back 1 command">←</button>
+                                <button type="button" id="tool-confirm" title="Toggle breakpoint here" class="tool-confirm">Set/Unset</button>
+                                <button type="button" id="tool-step-fwd" title="Move forward 1 command">→</button>
+                                <button type="button" id="tool-fast-fwd" title="Move forward 5 commands">⟫</button>
+                        </div>
+                        <div class="tool-mode-footer">
+                                <span class="tool-mode-hint">Ctrl+Alt+T to toggle</span>
+                                <button type="button" id="tool-mode-close">Close</button>
+                        </div>
                 </div>
                 <div class="dbg-status">
                         <p id="dbg-status-label">Data</p>
@@ -107,6 +155,10 @@
                                 <label class="setting-row">
                                         <span>Pause on input (,) <span class="help-icon" title="Pause Run when a comma instruction waits for input. Uncheck to continue running at full speed.">ⓘ</span></span>
                                         <input id="setting-pause-on-input" type="checkbox" checked />
+                                </label>
+                                <label class="setting-row">
+                                        <span>Skip comments in tool mode <span class="help-icon" title="When moving the pre-breakpoint position, skip non-command characters (comments/whitespace).">ⓘ</span></span>
+                                        <input id="setting-skip-comments" type="checkbox" checked />
                                 </label>
                                 <div class="setting-row">
                                         <span>Theme Preferences <span class="help-icon" title="Save your current theme and color customizations to your browser.">ⓘ</span></span>
@@ -163,13 +215,14 @@
                                         <li><b>F5</b> — Run</li>
                                         <li><b>F10</b> — Step Over</li>
                                         <li><b>F9</b> — Step Back</li>
-                                        <li><b>Ctrl+Shift+R</b> — Reset</li>
-                                        <li><b>Ctrl+Shift+D</b> — Done</li>
+                                        <li><b>Ctrl+Alt+R</b> — Reset</li>
+                                        <li><b>Ctrl+Alt+D</b> — Done</li>
                                         <li><b>Ctrl+O</b> — Load file</li>
-                                        <li><b>Ctrl+Shift+H</b> — Load Hello World</li>
-                                        <li><b>Ctrl+Shift+N</b> — Start Over</li>
+                                        <li><b>Ctrl+Alt+H</b> — Load Hello World</li>
+                                        <li><b>Ctrl+Alt+N</b> — Start Over</li>
                                         <li><b>Ctrl+B</b> — Breakpoint mode</li>
-                                        <li><b>Ctrl+Shift+B</b> — Clear breakpoints</li>
+                                        <li><b>Ctrl+Alt+T</b> — Tool mode</li>
+                                        <li><b>Ctrl+Alt+B</b> — Clear breakpoints</li>
                                         <li><b>Ctrl+,</b> — Settings</li>
                                         <li><b>F1</b> — Help</li>
                                 </ul>
