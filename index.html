@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Online BF IDE & Debugger</title>
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <div id="code-bg-margin"></div>
+        <pre class="code-bg" id="code-bg"></pre>
+        <div id="header">
+                <h1 id="mainTitle">Online BF</h1>
+                <div id="toolbar" class="menu-group">
+                        <div class="menu" data-menu="file">
+                                <button class="menu-trigger" type="button">File ▼</button>
+                                <div class="menu-dropdown" role="menu">
+                                        <button type="button" data-action="start-over">Start Over<span class="shortcut">Ctrl+Shift+N</span></button>
+                                        <button type="button" data-action="load-file">Load file...<span class="shortcut">Ctrl+O</span></button>
+                                        <button type="button" data-action="load-hello">Load "Hello, World!"<span class="shortcut">Ctrl+Shift+H</span></button>
+                                </div>
+                        </div>
+                        <div class="menu" data-menu="breakpoints">
+                                <button class="menu-trigger" type="button">Breakpoints ▼</button>
+                                <div class="menu-dropdown" role="menu">
+                                        <button type="button" data-action="breakpoint-mode">Breakpoint mode<span class="shortcut">Ctrl+B</span></button>
+                                        <button type="button" data-action="clear-breakpoints">Clear all breakpoints<span class="shortcut">Ctrl+Shift+B</span></button>
+                                </div>
+                        </div>
+                        <div class="menu" data-menu="settings">
+                                <button class="menu-trigger" type="button">Settings ▼</button>
+                                <div class="menu-dropdown" role="menu">
+                                        <button type="button" data-action="open-settings">Open settings...<span class="shortcut">Ctrl+,</span></button>
+                                </div>
+                        </div>
+                        <div class="menu" data-menu="help">
+                                <button class="menu-trigger" type="button">Help ▼</button>
+                                <div class="menu-dropdown" role="menu">
+                                        <button type="button" data-action="open-help">Open help...<span class="shortcut">F1</span></button>
+                                </div>
+                        </div>
+                </div>
+                <button id="themeswitch" title="Dark / Light">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="width: 60%; height: 60%;">
+
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+        </div>
+        <div id="textarea">
+            <p id="textarea-header">IDE Area</p>
+            <div class="editor-wrapper">
+                <pre class="highlight-layer" aria-hidden="true"><code id="highlightCode"></code></pre>
+                <textarea id="codeInput" spellcheck="false"></textarea>
+            </div>
+        </div>
+        <div id="debugger">
+                <div class="dbg-section">
+                        <div class="dbg-title">Tape</div>
+                        <div id="tape" class="tape"></div>
+                </div>
+                <div class="dbg-section">
+                        <div class="dbg-title">Output</div>
+                        <div id="output" class="output" readonly></div>
+                        <div class="terminal-row">
+                                <input id="terminal-input" class="terminal-input" type="text" maxlength="1" disabled placeholder="Waiting for input..." />
+                                <button id="terminal-send" class="terminal-send" disabled hidden>Send</button>
+                        </div>
+                </div>
+                <div class="dbg-controls">
+                        <button type="button" id="btn-run" title="Run (F5)">Run</button>
+                        <button type="button" id="btn-step" title="Step Over (F10)">Step</button>
+                        <button type="button" id="btn-step-back" title="Step Back (F9)">Step Back</button>
+                        <button type="button" id="btn-reset" title="Reset (Ctrl+Shift+R)">Reset</button>
+                        <button type="button" id="btn-done" title="Done (Ctrl+Shift+D)">Done</button>
+                </div>
+                <div class="dbg-status">
+                        <p id="dbg-status-label">Data</p>
+                        <div id="dbg-status" class="dbg-status">Status: <span class="dbg-status-idle">Idle</span> | IP: 0 | Cell[0] = 0 | Breakpoints: 0</div>
+                </div>
+        </div>
+
+        <!-- Settings modal -->
+        <div id="settings-modal" class="modal-overlay" hidden>
+                <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+                        <h2 id="settings-title">Settings</h2>
+                        <div class="modal-body">
+                                <label class="setting-row">
+                                        <span>Font <span class="help-icon" title="Choose the font for the editor and debugger.">ⓘ</span></span>
+                                        <select id="setting-font-select" hidden></select>
+                                        <input id="setting-font-input" type="text" placeholder="Consolas" />
+                                </label>
+                                <label class="setting-row">
+                                        <span>Font size <span class="help-icon" title="Adjust the text size globally.">ⓘ</span></span>
+                                        <input id="setting-fontsize" type="range" min="10" max="32" value="16" />
+                                        <input id="setting-fontsize-value" type="number" min="10" max="32" value="16" class="num-value" />
+                                </label>
+                                <label class="setting-row">
+                                        <span>Show Animated Background <span class="help-icon" title="Toggle the scrolling code background effect.">ⓘ</span></span>
+                                        <input id="setting-show-bg" type="checkbox" checked />
+                                </label>
+                                <label class="setting-row">
+                                        <span>Pause on input (,) <span class="help-icon" title="Pause Run when a comma instruction waits for input. Uncheck to continue running at full speed.">ⓘ</span></span>
+                                        <input id="setting-pause-on-input" type="checkbox" checked />
+                                </label>
+                                <div class="setting-row">
+                                        <span>Theme Preferences <span class="help-icon" title="Save your current theme and color customizations to your browser.">ⓘ</span></span>
+                                        <div class="theme-prefs-actions">
+                                                <button type="button" id="btn-save-theme-prefs">Save Theme Preferences</button>
+                                                <button type="button" id="btn-clear-theme-prefs">Clear Theme Preferences</button>
+                                                <span id="theme-prefs-status" class="theme-prefs-status">Default theme</span>
+                                        </div>
+                                </div>
+                                <label class="setting-row">
+                                        <span>Run Speed (ms)</span>
+                                        <input id="setting-step-interval" type="range" min="8" max="1000" step="1" value="100" />
+                                        <input id="setting-step-interval-value" type="number" min="8" max="1000" value="100" class="num-value" />
+                                </label>
+                                <details id="setting-advanced">
+                                        <summary>Custom Code Coloring <span class="help-icon" title="Customize colors and styles for each Brainfuck command.">ⓘ</span></summary>
+                                        <div id="syntax-theme-tabs" class="syn-tabs">
+                                                <button type="button" class="syn-tab active" data-syn-theme="dark">Dark</button>
+                                                <button type="button" class="syn-tab" data-syn-theme="light">Light</button>
+                                        </div>
+                                        <table id="syntax-config" class="syntax-table">
+                                                <thead>
+                                                        <tr><th>Char</th><th>Color</th><th>Style</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                        <tr class="syntax-row" data-char=">"><td class="syn-char">&gt;</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="<"><td class="syn-char">&lt;</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="+"><td class="syn-char">+</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="-"><td class="syn-char">-</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="."><td class="syn-char">.</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char=","><td class="syn-char">,</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="["><td class="syn-char">[</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="]"><td class="syn-char">]</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                        <tr class="syntax-row" data-char="comment"><td class="syn-char">comment</td><td><input type="color" class="syn-color" /></td><td><select class="syn-style"><option value="normal">normal</option><option value="bold">bold</option><option value="italic">italic</option><option value="bolditalic">bolditalic</option></select></td></tr>
+                                                </tbody>
+                                        </table>
+                                </details>
+                        </div>
+                        <div class="modal-footer">
+                                <button type="button" id="settings-cancel">Cancel</button>
+                                <button type="button" id="settings-restore-defaults">Restore Defaults</button>
+                                <button type="button" id="settings-save">Save</button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Help modal -->
+        <div id="help-modal" class="modal-overlay" hidden>
+                <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+                        <h2 id="help-title">BF IDE Help</h2>
+                        <div class="modal-body help-body">
+                                <h3>Keyboard Shortcuts</h3>
+                                <ul>
+                                        <li><b>F5</b> — Run</li>
+                                        <li><b>F10</b> — Step Over</li>
+                                        <li><b>F9</b> — Step Back</li>
+                                        <li><b>Ctrl+Shift+R</b> — Reset</li>
+                                        <li><b>Ctrl+Shift+D</b> — Done</li>
+                                        <li><b>Ctrl+O</b> — Load file</li>
+                                        <li><b>Ctrl+Shift+H</b> — Load Hello World</li>
+                                        <li><b>Ctrl+Shift+N</b> — Start Over</li>
+                                        <li><b>Ctrl+B</b> — Breakpoint mode</li>
+                                        <li><b>Ctrl+Shift+B</b> — Clear breakpoints</li>
+                                        <li><b>Ctrl+,</b> — Settings</li>
+                                        <li><b>F1</b> — Help</li>
+                                </ul>
+                                <h3>Brainfuck Instructions</h3>
+                                <table class="bf-help-table">
+                                        <thead><tr><th>Instruction</th><th>Description</th></tr></thead>
+                                        <tbody>
+                                                <tr><td>&gt;</td><td>Move pointer right</td></tr>
+                                                <tr><td>&lt;</td><td>Move pointer left</td></tr>
+                                                <tr><td>+</td><td>Increment current cell (mod 256)</td></tr>
+                                                <tr><td>-</td><td>Decrement current cell (mod 256)</td></tr>
+                                                <tr><td>.</td><td>Output ASCII char of current cell</td></tr>
+                                                <tr><td>,</td><td>Read one char from terminal into current cell</td></tr>
+                                                <tr><td>[</td><td>Jump past matching ] if current cell is 0</td></tr>
+                                                <tr><td>]</td><td>Jump back to matching [ if current cell is not 0</td></tr>
+                                        </tbody>
+                                </table>
+                                <p>Any other characters are treated as comments.</p>
+                        </div>
+                        <div class="modal-footer">
+                                <button type="button" id="help-close">Close</button>
+                        </div>
+                </div>
+        </div>
+
+        <input type="file" id="file-input" accept=".bf,.txt" hidden />
+        <script src="./script.js"></script>
+        <script src="./type.js"></script>
+    </body>
+</html>
