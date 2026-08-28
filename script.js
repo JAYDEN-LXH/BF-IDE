@@ -18,6 +18,7 @@ const tapeEl = document.getElementById('tape');
 const outputEl = document.getElementById('output');
 const terminalInput = document.getElementById('terminal-input');
 const terminalSend = document.getElementById('terminal-send');
+const dbgStatusContainer = document.getElementById('dbg-status-container');
 const dbgStatus = document.getElementById('dbg-status');
 const btnRun = document.getElementById('btn-run');
 const btnStep = document.getElementById('btn-step');
@@ -206,6 +207,17 @@ function escapeHtml(ch) {
         case '"': return '&quot;';
         default: return ch;
     }
+}
+
+function paintErrorDbg(error, speed=false, text=undefined, cellVal=undefined, charDisplay=undefined) {
+    if (error) {
+        dbgStatusContainer.classList.add('error');
+    } else {
+        dbgStatusContainer.classList.remove('error');
+    }
+
+    let statusText = error ? `<span class="dbg-status-error">${bfState.errorMsg}</span>` : text;
+    dbgStatus.innerHTML = `Status: ${statusText}${speed ? ' (Speed)' : ""} | IP: ${bfState.ip}<br><br>Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
 }
 
 // The currently active syntax map (selected by UI theme).
@@ -480,6 +492,7 @@ function stepOnce() {
         case '[':
             if (bfState.tape[bfState.pointer] === 0) {
                 const m = findMatchingBracket(bfState.code, bfState.ip, 1);
+                bfState.errorMsg = `Unmatched '[' at position ${bfState.ip}`;
                 if (m === -1) return 'halt'; // unmatched; halt
                 bfState.ip = m;
             }
@@ -487,6 +500,7 @@ function stepOnce() {
         case ']':
             if (bfState.tape[bfState.pointer] !== 0) {
                 const m = findMatchingBracket(bfState.code, bfState.ip, -1);
+                bfState.errorMsg = `Unmatched ']' at position ${bfState.ip}`;
                 if (m === -1) return 'halt'; // unmatched; halt
                 bfState.ip = m;
             }
@@ -549,8 +563,9 @@ function runStep() {
 
     if (status === 'halt') {
         stopRunning();
+        l('HI!');
         bfState.status = bfState.errorMsg ? 'idle' : 'finished';
-        updateUI();
+        updateUI(true);
         return;
     }
 
@@ -574,7 +589,7 @@ function runStep() {
     if (bfState.ip >= bfState.code.length) {
         stopRunning();
         bfState.status = 'finished';
-        updateUI();
+        updateUI(false, false);
     }
 }
 
@@ -591,7 +606,7 @@ function stepOver() {
 
     if (status === 'halt') {
         bfState.status = bfState.errorMsg ? 'idle' : 'finished';
-        updateUI();
+        updateUI(true);
         return;
     }
 
@@ -738,7 +753,7 @@ function renderTape() {
 // UI UPDATE
 // =======================================
 
-function updateUI() {
+function updateUI(isError=false, speed=null) {
     updateHighlight();
     scrollToActiveInstruction();
     renderTape();
@@ -748,19 +763,21 @@ function updateUI() {
     const charDisplay = (cellVal >= 32 && cellVal <= 126)
         ? `'${String.fromCharCode(cellVal)}'`
         : '';
-    if (bfState.errorMsg) {
-        dbgStatus.textContent = bfState.errorMsg;
+    let statusText;
+    if (bfState.toolMode) {
+        statusText = 'Breakpoint (Tool)';
+    } else if (bfState.breakpointMode) {
+        statusText = 'Breakpoint (Click)';
     } else {
-        let statusText;
-        if (bfState.toolMode) {
-            statusText = 'Breakpoint (Tool)';
-        } else if (bfState.breakpointMode) {
-            statusText = 'Breakpoint (Click)';
-        } else {
-            statusText = `<span class="dbg-status-${bfState.status}">${STATUS_MAP[bfState.status]}</span>`;
-        }
-        dbgStatus.innerHTML = `Status: ${statusText}${(bfState.status === 'running') && (bfState.config.optimalRunning) ? ' (Speed)' : ""} | IP: ${bfState.ip}<br><br>Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
+        statusText = `<span class="dbg-status-${bfState.status}">${STATUS_MAP[bfState.status]}</span>`;
     }
+
+    if (speed === false) {
+        // don't do anything to keep speed as false!
+    } else if (speed !== null) {
+        speed = (bfState.startedByRun) && (bfState.config.optimalRunning);
+    }
+    paintErrorDbg(isError, speed, statusText, cellVal, charDisplay)
 
     // Button enabled/disabled states
     btnRun.disabled = bfState.inputPending || (bfState.sessionActive && bfState.ip >= bfState.code.length);

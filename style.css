@@ -242,6 +242,13 @@ body.light-theme .terminal-send:not(:disabled) {
 #btn-done { background: #c62828; border-color: #b71c1c; }
 #btn-done:hover { background: #d32f2f; }
 
+#dbg-status-container.error {
+    border: 1.5px solid #f00;
+}
+#dbg-status-container.error #dbg-status {
+    border: 1.5px solid #f00;
+}
+
 .dbg-status {
     margin-top: auto;
     padding: 6px 8px;
@@ -262,6 +269,7 @@ body.light-theme .terminal-send:not(:disabled) {
 .dbg-status-running { color: #00EEFF; }
 .dbg-status-paused { color: #EEEE11; }
 .dbg-status-waiting { color: #FF7700; }
+.dbg-status-error { color: #f11; }
 
 /* Tool mode panel (mobile breakpoint placement) */
 .tool-mode-panel {
