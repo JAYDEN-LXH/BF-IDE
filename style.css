@@ -566,10 +566,6 @@ body.light-theme .theme-prefs-actions button:hover {
     text-align: left;
 }
 
-* {
-    font-family: inherit;
-}
-
 #themeswitch,
 .modal,
 .modal button,
@@ -586,7 +582,7 @@ body {
     overflow-y: auto;
     margin: 0;
     padding: 0;
-    font-family: 'Consolas', monospace !important;
+    font-family: var(--bf-font), monospace;
     transition: background-color 0.4s linear, color 0.4s linear;
 }
 
@@ -596,7 +592,6 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    
     line-height: 1.6rem;
     margin: 0;
     padding-left: 15px;
@@ -1128,4 +1123,16 @@ body.light-theme .terminal-input:not(:disabled) {
     .setting-row select {
         min-height: 40px;
     }
+}
+
+* {
+    font-family: inherit;
+}
+
+/* FONTS */
+@font-face {
+    font-family: 'Cascadia Mono';
+    src: url('./fonts/Cascadia-Mono.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
 }

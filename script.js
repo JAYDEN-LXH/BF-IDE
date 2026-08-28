@@ -39,6 +39,7 @@ const settingFontsizeValue = document.getElementById('setting-fontsize-value');
 const settingShowBg = document.getElementById('setting-show-bg');
 const settingPauseOnInput = document.getElementById('setting-pause-on-input');
 const settingSkipComments = document.getElementById('setting-skip-comments');
+const settingOptimalRunning = document.getElementById('setting-optimal-running');
 const btnSaveThemePrefs = document.getElementById('btn-save-theme-prefs');
 const btnClearThemePrefs = document.getElementById('btn-clear-theme-prefs');
 const themePrefsStatus = document.getElementById('theme-prefs-status');
@@ -137,6 +138,7 @@ const bfState = {
     loopStack: [],
     running: false,
     stepInterval: null,
+    renderInterval: null,
     sessionActive: false,
     inputPending: false,
     lastInput: null,
@@ -176,6 +178,7 @@ const bfState = {
         stepIntervalMs: DEFAULT_STEP_INTERVAL_MS,
         pauseOnInput: true,
         skipComments: true, // tool mode: skip non-command chars when moving
+        optimalRunning: false, // Run mode: refresh UI every 200ms instead of every step
         syntax: {
             dark: cloneSyntax(DARK_SYNTAX_DEFAULT),
             light: cloneSyntax(LIGHT_SYNTAX_DEFAULT)
@@ -517,6 +520,17 @@ function startRun() {
     bfState.status = 'running'; // make sure it is correct
     if (bfState.stepInterval) clearInterval(bfState.stepInterval);
     bfState.stepInterval = setInterval(runStep, bfState.config.stepIntervalMs);
+
+    // In Optimal Running mode, decouple execution from rendering:
+    // runStep only mutates bfState; a 200ms interval refreshes the DOM.
+    if (bfState.renderInterval) {
+        clearInterval(bfState.renderInterval);
+        bfState.renderInterval = null;
+    }
+    if (bfState.config.optimalRunning) {
+        bfState.renderInterval = setInterval(updateUI, 200);
+    }
+
     updateUI();
 }
 
@@ -551,7 +565,11 @@ function runStep() {
         return;
     }
 
-    updateUI();
+    // Per-step UI refresh. In Optimal Running mode, the render interval
+    // (200ms) handles updates instead, so we skip the per-step refresh.
+    if (!bfState.config.optimalRunning) {
+        updateUI();
+    }
 
     if (bfState.ip >= bfState.code.length) {
         stopRunning();
@@ -623,6 +641,10 @@ function stopRunning() {
     if (bfState.stepInterval) {
         clearInterval(bfState.stepInterval);
         bfState.stepInterval = null;
+    }
+    if (bfState.renderInterval) {
+        clearInterval(bfState.renderInterval);
+        bfState.renderInterval = null;
     }
 }
 
@@ -737,7 +759,7 @@ function updateUI() {
         } else {
             statusText = `<span class="dbg-status-${bfState.status}">${STATUS_MAP[bfState.status]}</span>`;
         }
-        dbgStatus.innerHTML = `Status: ${statusText} | IP: ${bfState.ip} | Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
+        dbgStatus.innerHTML = `Status: ${statusText}${(bfState.status === 'running') && (bfState.config.optimalRunning) ? ' (Speed)' : ""} | IP: ${bfState.ip}<br><br>Cell[${bfState.pointer}] = ${cellVal}${charDisplay ? ' (' + charDisplay + ')' : ''} | Breakpoints: ${bfState.breakpoints.size}`;
     }
 
     // Button enabled/disabled states
@@ -777,6 +799,18 @@ function toggleBreakpoint(ip) {
 
 function clearAllBreakpoints() {
     bfState.breakpoints.clear();
+    updateHighlight();
+    updateUI();
+}
+
+// Remove all non-Brainfuck characters from the editor (comments, whitespace, newlines).
+function stripComments() {
+    const raw = codeInput.value;
+    const stripped = raw.split('').filter(ch => '><+-.,[]'.includes(ch)).join('');
+    codeInput.value = stripped;
+    if (bfState.sessionActive) endSession();
+    bfState.breakpoints.clear();
+    bfState.status = 'ready';
     updateHighlight();
     updateUI();
 }
@@ -955,6 +989,7 @@ function handleMenuAction(action) {
         case 'start-over': actionStartOver(); break;
         case 'load-file': actionLoadFile(); break;
         case 'load-hello': actionLoadHello(); break;
+        case 'strip-comments': stripComments(); break;
         case 'breakpoint-mode': toggleBreakpointMode(); break;
         case 'tool-mode': toggleToolMode(); break;
         case 'clear-breakpoints': clearAllBreakpoints(); break;
@@ -1104,6 +1139,7 @@ function openSettings() {
         stepIntervalMs: bfState.config.stepIntervalMs,
         pauseOnInput: bfState.config.pauseOnInput,
         skipComments: bfState.config.skipComments,
+        optimalRunning: bfState.config.optimalRunning,
         syntax: {
             dark: cloneSyntax(bfState.config.syntax.dark),
             light: cloneSyntax(bfState.config.syntax.light)
@@ -1139,6 +1175,7 @@ function openSettings() {
     settingShowBg.checked = bfState.config.showBackground;
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
     settingSkipComments.checked = bfState.config.skipComments;
+    settingOptimalRunning.checked = bfState.config.optimalRunning;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
     updateThemePrefsStatus();
@@ -1165,6 +1202,7 @@ function cancelSettings() {
         bfState.config.stepIntervalMs = s.stepIntervalMs;
         bfState.config.pauseOnInput = s.pauseOnInput;
         bfState.config.skipComments = s.skipComments;
+        bfState.config.optimalRunning = s.optimalRunning;
         bfState.config.syntax.dark = cloneSyntax(s.syntax.dark);
         bfState.config.syntax.light = cloneSyntax(s.syntax.light);
         applyTheme(s.theme);
@@ -1178,7 +1216,7 @@ function cancelSettings() {
 
 function restoreDefaults() {
     // Reset config to factory defaults
-    bfState.config.font = 'Consolas';
+    bfState.config.font = 'Cascadia Mono';
     bfState.config.fontSize = 16;
     bfState.config.showBackground = true;
     bfState.config.theme = 'dark';
@@ -1186,6 +1224,7 @@ function restoreDefaults() {
     bfState.config.stepIntervalMs = DEFAULT_STEP_INTERVAL_MS;
     bfState.config.pauseOnInput = true;
     bfState.config.skipComments = true;
+    bfState.config.optimalRunning = false;
     bfState.config.syntax.dark = cloneSyntax(DARK_SYNTAX_DEFAULT);
     bfState.config.syntax.light = cloneSyntax(LIGHT_SYNTAX_DEFAULT);
 
@@ -1196,6 +1235,7 @@ function restoreDefaults() {
     settingShowBg.checked = bfState.config.showBackground;
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
     settingSkipComments.checked = bfState.config.skipComments;
+    settingOptimalRunning.checked = bfState.config.optimalRunning;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
 
@@ -1246,6 +1286,9 @@ function saveSettings() {
     // skip comments in tool mode
     bfState.config.skipComments = settingSkipComments.checked;
 
+    // optimal running (Run mode: refresh UI every 200ms instead of every step)
+    bfState.config.optimalRunning = settingOptimalRunning.checked;
+
     // run speed (immediate effect: restart the run interval if currently running)
     const stepMs = parseInt(settingStepInterval.value, 10);
     if (!isNaN(stepMs)) {
@@ -1287,15 +1330,13 @@ function quoteFont(font) {
 }
 
 function applyConfig() {
-    const fontFamily = quoteFont(bfState.config.font) + ', monospace';
+    const fontFamily = quoteFont(bfState.config.font);
+    const fontSize = bfState.config.fontSize + 'px';
     document.documentElement.style.setProperty('--bf-font', fontFamily);
-    codeInput.style.fontFamily = fontFamily;
-    codeInput.style.fontSize = bfState.config.fontSize + 'px';
-    highlightCode.style.fontFamily = fontFamily;
-    highlightCode.style.fontSize = bfState.config.fontSize + 'px';
-    code.style.fontSize = bfState.config.fontSize + 'px';
+    codeInput.style.fontSize = fontSize;
+    highlightCode.style.fontSize = fontSize;
+    code.style.fontSize = fontSize;
 }
-
 function themePrefsSaved() {
     return !!localStorage.getItem('bf-config');
 }
@@ -1358,6 +1399,7 @@ function persistConfig() {
             stepIntervalMs: bfState.config.stepIntervalMs,
             pauseOnInput: bfState.config.pauseOnInput,
             skipComments: bfState.config.skipComments,
+            optimalRunning: bfState.config.optimalRunning,
             syntax: {
                 dark: bfState.config.syntax.dark,
                 light: bfState.config.syntax.light
@@ -1383,6 +1425,7 @@ function loadConfig() {
             if (typeof saved.stepIntervalMs === 'number' && saved.stepIntervalMs >= 8 && saved.stepIntervalMs <= 1000) bfState.config.stepIntervalMs = saved.stepIntervalMs;
             if (typeof saved.pauseOnInput === 'boolean') bfState.config.pauseOnInput = saved.pauseOnInput;
             if (typeof saved.skipComments === 'boolean') bfState.config.skipComments = saved.skipComments;
+            if (typeof saved.optimalRunning === 'boolean') bfState.config.optimalRunning = saved.optimalRunning;
 
             // Nested per-theme syntax stored in bf-config
             if (saved.syntax) {
@@ -1729,6 +1772,13 @@ document.addEventListener('keydown', (e) => {
     if (ctrl && alt && (e.key === 'H' || e.key === 'h')) {
         e.preventDefault();
         actionLoadHello();
+        return;
+    }
+
+    // Ctrl+Alt+X — Strip Comments
+    if (ctrl && alt && (e.key === 'X' || e.key === 'x')) {
+        e.preventDefault();
+        stripComments();
         return;
     }
 

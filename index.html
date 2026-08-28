@@ -42,6 +42,9 @@
                             <button type="button" data-action="load-hello">
                                 Load "Hello, World!" <span class="shortcut">Ctrl+Alt+H</span>
                             </button>
+                            <button type="button" data-action="strip-comments">
+                                Strip All Comments <span class="shortcut">Ctrl+Alt+X</span>
+                            </button>
                         </div>
                         <div class="toolbar-section">
                             <div class="toolbar-section-label">Breakpoints</div>
@@ -129,7 +132,7 @@
                 </div>
                 <div class="dbg-status">
                         <p id="dbg-status-label">Data</p>
-                        <div id="dbg-status" class="dbg-status">Status: <span class="dbg-status-idle">Idle</span> | IP: 0 | Cell[0] = 0 | Breakpoints: 0</div>
+                        <div id="dbg-status" class="dbg-status">Status: <span class="dbg-status-idle">Idle</span> | IP: 0<br><br>Cell[0] = 0 | Breakpoints: 0</div>
                 </div>
         </div>
 
@@ -139,12 +142,12 @@
                         <h2 id="settings-title">Settings</h2>
                         <div class="modal-body">
                                 <label class="setting-row">
-                                        <span>Font <span class="help-icon" title="Choose the font for the editor and debugger.">ⓘ</span></span>
+                                        <span>Font <span class="help-icon" title="Set the font for the page.">ⓘ</span></span>
                                         <select id="setting-font-select" hidden></select>
                                         <input id="setting-font-input" type="text" placeholder="Consolas" />
                                 </label>
                                 <label class="setting-row">
-                                        <span>Font size <span class="help-icon" title="Adjust the text size globally.">ⓘ</span></span>
+                                        <span>Font size <span class="help-icon" title="Set the text size for the page.">ⓘ</span></span>
                                         <input id="setting-fontsize" type="range" min="10" max="32" value="16" />
                                         <input id="setting-fontsize-value" type="number" min="10" max="32" value="16" class="num-value" />
                                 </label>
@@ -172,6 +175,10 @@
                                         <span>Run Speed (ms)</span>
                                         <input id="setting-step-interval" type="range" min="8" max="1000" step="1" value="100" />
                                         <input id="setting-step-interval-value" type="number" min="8" max="1000" value="100" class="num-value" />
+                                </label>
+                                <label class="setting-row">
+                                        <span>Optimal Running <span class="help-icon" title="Run faster by updating the UI only every 200ms instead of every step. Does not affect Step Over.">ⓘ</span></span>
+                                        <input id="setting-optimal-running" type="checkbox" />
                                 </label>
                                 <details id="setting-advanced">
                                         <summary>Custom Code Coloring <span class="help-icon" title="Customize colors and styles for each Brainfuck command.">ⓘ</span></summary>
@@ -219,6 +226,7 @@
                                         <li><b>Ctrl+Alt+D</b> — Done</li>
                                         <li><b>Ctrl+O</b> — Load file</li>
                                         <li><b>Ctrl+Alt+H</b> — Load Hello World</li>
+                                        <li><b>Ctrl+Alt+X</b> — Strip Comments</li>
                                         <li><b>Ctrl+Alt+N</b> — Start Over</li>
                                         <li><b>Ctrl+B</b> — Breakpoint mode</li>
                                         <li><b>Ctrl+Alt+T</b> — Tool mode</li>
@@ -253,3 +261,5 @@
         <script src="./type.js"></script>
     </body>
 </html>
+
+<!-- todo: fix #codeInput inline style -->
