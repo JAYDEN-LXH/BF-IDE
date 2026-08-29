@@ -746,7 +746,6 @@ body.light-theme .toolbar-overlay {
 }
 .toolbar-section-label {
     font-weight: bold;
-    
     opacity: 0.7;
     margin: 8px 4px;
     text-transform: uppercase;
@@ -790,6 +789,8 @@ body.light-theme .toolbar-section button:focus-visible {
     bottom: 1vh;
     position: absolute;
     z-index: 10;
+    scrollbar-width: thin;
+    scrollbar-color: #666 rgba(255, 255, 255, 0.05);
 }
 
 #textarea {
@@ -838,7 +839,7 @@ body.light-theme .toolbar-section button:focus-visible {
     margin: 0;
     padding: 0;
     
-    line-height: 1.6;
+    line-height: 1.5;
     tab-size: 2;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -863,6 +864,7 @@ body.light-theme .toolbar-section button:focus-visible {
     caret-color: #fff;
     z-index: 2;
     padding: 0;
+    margin: 0;
     resize: none;
     overflow: auto;
 }
@@ -894,6 +896,21 @@ body.light-theme .toolbar-section button:focus-visible {
     border-radius: 4px;
 }
 
+#debugger::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+#debugger::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+}
+#debugger::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 3px;
+}
+#debugger::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
 /* ============================================================
    LIGHT THEME OVERRIDES (everything in one place)
    ============================================================ */
@@ -910,7 +927,7 @@ body.light-theme .bf-in { color: #1e7a4a; }
 body.light-theme .bf-out { color: #1a6ba8; }
 body.light-theme .bf-comment { color: #b85a1a; font-weight: bold; font-style: italic; }
 
-body.light-theme .dbg-status-idle { color: #bbbbbb; }
+body.light-theme .dbg-status-idle { color: #334; }
 body.light-theme .dbg-status-ready { color: #007a33; }
 body.light-theme .dbg-status-running { color: #006699; }
 body.light-theme .dbg-status-paused { color: #b38f00; }
@@ -923,7 +940,7 @@ body.light-theme #mainTitle { color: #444; }
 body.light-theme #themeswitch { background-color: #999; }
 
 body.light-theme #textarea { background-color: #ccce; opacity: 0.85; }
-body.light-theme #debugger { background-color: #ccce; opacity: 0.85; }
+body.light-theme #debugger { background-color: #ccce; opacity: 0.85; scrollbar-color: #aaa rgba(0, 0, 0, 0.05);}
 body.light-theme #textarea-header { color: #222; }
 
 body.light-theme #codeInput { caret-color: #222; }
@@ -940,6 +957,18 @@ body.light-theme #codeInput::-webkit-scrollbar-thumb,
 body.light-theme .highlight-layer::-webkit-scrollbar-thumb {
     background: #999;
     border-radius: 4px;
+}
+body.light-theme #debugger::-webkit-scrollbar-thumb {
+    background: #aaa;
+}
+body.light-theme #debugger::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+body.light-theme #debugger #output::-webkit-scrollbar-thumb {
+    background: #999;
+}
+body.light-theme #debugger #output {
+    scrollbar-color: #999;
 }
 
 /* ============================================================
@@ -976,6 +1005,10 @@ body.light-theme .modal {
     color: #222;
     border-color: #888;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.light-theme #settings-save {
+    color: #fff;
 }
 
 body.light-theme .syntax-table th,
@@ -1015,8 +1048,11 @@ body.light-theme .terminal-input:not(:disabled) {
     box-shadow: 0 0 4px #1e7a4a;
 }
 
-/* MEDIA RESPONSIVE STYLESHEET */
-@media (max-width: 1200px) {
+/* ============================================================
+   MOBILE & TABLET COMPATIBILITY CUSTOMIZATIONS
+   ============================================================ */
+
+@media (max-width: 1024px){
     .toolbar-section {
         flex: 1 0 40%;
     }
@@ -1047,9 +1083,10 @@ body.light-theme .terminal-input:not(:disabled) {
     }
     #mainTitle {
         font-size: 0;
+        left: max(0.5rem, env(safe-area-inset-top), env(safe-area-inset-left));
     }
     #mainTitle::before {
-        content: "BF";
+        content: "BF IDE";
         font-size: 1.3rem;
         display: inline-block;
     }
@@ -1137,7 +1174,7 @@ body.light-theme .terminal-input:not(:disabled) {
     font-family: inherit;
 }
 
-/* FONTS */
+/* DEFAULT PAGE FONT */
 @font-face {
     font-family: 'Cascadia Mono';
     src: url('./fonts/Cascadia-Mono.woff2') format('woff2');

@@ -27,6 +27,7 @@ const btnReset = document.getElementById('btn-reset');
 const btnDone = document.getElementById('btn-done');
 const toolModePanel = document.getElementById('tool-mode-panel');
 const toolModePos = document.getElementById('tool-mode-pos');
+const toolModeIsbp = document.getElementById('tool-mode-isbp');
 const toolModeChar = document.getElementById('tool-mode-char');
 const fileInput = document.getElementById('file-input');
 const settingsModal = document.getElementById('settings-modal');
@@ -171,7 +172,7 @@ const bfState = {
 
     // 配置
     config: {
-        font: 'Consolas',
+        font: 'Cascadia Mono',
         fontSize: 16,
         showBackground: true,
         theme: 'dark',
@@ -209,7 +210,7 @@ function escapeHtml(ch) {
     }
 }
 
-function paintErrorDbg(error, speed=false, text=undefined, cellVal=undefined, charDisplay=undefined) {
+function paintDbg(error, speed=false, text=undefined, cellVal=undefined, charDisplay=undefined) {
     if (error) {
         dbgStatusContainer.classList.add('error');
     } else {
@@ -319,14 +320,61 @@ function findUnmatchedBrackets(codeStr) {
 // HIGHLIGHT
 // =======================================
 
+let currentRenderId = 0; // 全局渲染 ID
+
 function updateHighlight() {
     const text = codeInput.value;
     bfState.unmatchedBrackets = findUnmatchedBrackets(text);
-    let html = '';
-    for (let i = 0; i < text.length; i++) {
-        html += getSpanHTML(text[i], i);
+
+    // 递增渲染 ID，让旧的渲染任务失效
+    const renderId = ++currentRenderId;
+
+    highlightCode.innerHTML = '';
+
+    const CHUNK_SIZE = 500;
+    const totalLen = text.length;
+
+    if (totalLen <= CHUNK_SIZE) {
+        let html = '';
+        for (let i = 0; i < totalLen; i++) {
+            const ch = text[i];
+            if (ch === '\n') {
+                html += '<br>';
+            } else {
+                html += getSpanHTML(ch, i);
+            }
+        }
+        highlightCode.innerHTML = html || '<span class="bf-comment">&#8203;</span>';
+        return;
     }
-    highlightCode.innerHTML = html || '<span class="bf-comment">&#8203;</span>';
+
+    let processed = 0;
+
+    function renderNextChunk() {
+        // 如果渲染 ID 不匹配，说明有新的更新任务，放弃当前任务
+        if (renderId !== currentRenderId) {
+            return;
+        }
+
+        const end = Math.min(processed + CHUNK_SIZE, totalLen);
+        let html = '';
+        for (let i = processed; i < end; i++) {
+            const ch = text[i];
+            if (ch === '\n') {
+                html += '<br>';
+            } else {
+                html += getSpanHTML(ch, i);
+            }
+        }
+        highlightCode.insertAdjacentHTML('beforeend', html);
+        processed = end;
+
+        if (processed < totalLen) {
+            requestAnimationFrame(renderNextChunk);
+        }
+    }
+
+    requestAnimationFrame(renderNextChunk);
 }
 
 function scrollToActiveInstruction() {
@@ -774,10 +822,10 @@ function updateUI(isError=false, speed=null) {
 
     if (speed === false) {
         // don't do anything to keep speed as false!
-    } else if (speed !== null) {
+    } else if (speed === null) { // didn't pass in, we decide
         speed = (bfState.startedByRun) && (bfState.config.optimalRunning);
     }
-    paintErrorDbg(isError, speed, statusText, cellVal, charDisplay)
+    paintDbg(isError, speed, statusText, cellVal, charDisplay)
 
     // Button enabled/disabled states
     btnRun.disabled = bfState.inputPending || (bfState.sessionActive && bfState.ip >= bfState.code.length);
@@ -893,6 +941,7 @@ function movePreBreakpoint(dir, fast) {
 function confirmPreBreakpoint() {
     if (bfState.preBreakpoint === null) return;
     toggleBreakpoint(bfState.preBreakpoint);
+    updateToolModeUI();
 }
 
 function updateToolModeUI() {
@@ -900,6 +949,9 @@ function updateToolModeUI() {
         const code = codeInput.value;
         const ch = code[bfState.preBreakpoint];
         toolModePos.textContent = String(bfState.preBreakpoint);
+        const isBP = bfState.breakpoints.has(bfState.preBreakpoint);
+        toolModeIsbp.textContent = isBP ? "is" : "is not";
+        toolModeIsbp.style.color = isBP ? "#ff6b6b" : "#69db7c";
         toolModeChar.textContent = ch !== undefined ? JSON.stringify(ch) : '';
     } else {
         toolModePos.textContent = '—';
@@ -1285,7 +1337,7 @@ function saveSettings() {
     if (!settingFontSelect.hidden && settingFontSelect.value && settingFontSelect.value !== '__custom__') {
         font = settingFontSelect.value;
     } else {
-        font = settingFontInput.value.trim() || 'Consolas';
+        font = settingFontInput.value.trim() || 'Cascadia Mono';
     }
     bfState.config.font = font;
 
@@ -1368,6 +1420,7 @@ function updateThemePrefsStatus() {
 }
 
 function saveThemePrefs() {
+    bfState.config.saveThemePreference = true;
     persistConfig();
     updateThemePrefsStatus();
 }
@@ -1381,13 +1434,14 @@ function clearThemePrefs() {
     localStorage.removeItem('bf-syntax-light');
 
     // Restore defaults.
-    bfState.config.font = 'Consolas';
+    bfState.config.font = 'Cascadia Mono';
     bfState.config.fontSize = 16;
     bfState.config.showBackground = true;
     bfState.config.stepIntervalMs = DEFAULT_STEP_INTERVAL_MS;
     bfState.config.theme = 'dark';
     bfState.config.syntax.dark = cloneSyntax(DARK_SYNTAX_DEFAULT);
     bfState.config.syntax.light = cloneSyntax(LIGHT_SYNTAX_DEFAULT);
+    bfState.config.saveThemePreference = false;
 
     applyTheme('dark');
     applyConfig();
@@ -1407,6 +1461,7 @@ function mergeOneSyntax(saved, base) {
 }
 
 function persistConfig() {
+    if (!bfState.config.saveThemePreference) return;
     try {
         localStorage.setItem('bf-config', JSON.stringify({
             theme: bfState.config.theme,
