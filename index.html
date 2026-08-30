@@ -10,7 +10,7 @@
         <div id="code-bg-margin"></div>
         <pre class="code-bg" id="code-bg"></pre>
         <div id="header">
-            <h1 id="mainTitle">Online BF</h1>
+            <h1 id="mainTitle">Online BF IDE</h1>
             <button id="toolbar-toggle" class="toolbar-toggle" type="button" title="Toggle Toolbar" aria-label="Toggle Toolbar" aria-expanded="false" aria-controls="toolbar-overlay">
                 <svg class="icon-menu"
                         xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +91,7 @@
         <div id="textarea">
             <p id="textarea-header">IDE Area</p>
             <div class="editor-wrapper">
-                <pre class="highlight-layer" aria-hidden="true"><code id="highlightCode"></code></pre>
+                <pre class="highlight-layer" aria-hidden="true" id="highlightLayer"></pre>
                 <textarea id="codeInput" spellcheck="false"></textarea>
             </div>
         </div>
@@ -265,5 +265,3 @@
         <script src="./type.js"></script>
     </body>
 </html>
-
-<!-- todo: fix #codeInput inline style -->

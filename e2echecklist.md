@@ -26,8 +26,8 @@
 
 - [ y ] **BP Click Mode**：点击代码字符，断点出现（红色高亮），再次点击移除
 - [ y ] **BP Tool Mode**：打开工具面板，`←`/`→` 移动预断点，编辑器同步高亮
-- [ ] **BP Tool Mode**：点击 `Confirm`，预断点位置变为真实断点（红色高亮）
-- [ ] **BP Tool Mode**：`快退`/`快进` 移动预断点，每次移动 5 个指令
+- [ y ] **BP Tool Mode**：点击 `Confirm`，预断点位置变为真实断点（红色高亮）
+- [ y ] **BP Tool Mode**：`快退`/`快进` 移动预断点，每次移动 5 个指令
 - [ ] **BP Tool Mode**：`Skip comments` 开启时，预断点跳过注释，只停在 BF 指令上
 - [ ] **BP Tool Mode**：`Skip comments` 关闭时，预断点可停在任意字符上
 - [ ] **BP Tool Mode**：点击编辑器空白区域，自动退出工具模式，面板隐藏

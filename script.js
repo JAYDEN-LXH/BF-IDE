@@ -1,5 +1,5 @@
 // =======================================
-// VARIABLES & CONSTANTS
+// DOM REFERENCES
 // =======================================
 
 const themeswitch = document.getElementById('themeswitch');
@@ -10,8 +10,7 @@ const code = document.getElementById('code-bg');
 const IDEarea = document.getElementById('textarea');
 const codeInput = document.getElementById('codeInput');
 const debuggerPanel = document.getElementById('debugger');
-const highlightCode = document.getElementById('highlightCode');
-let debug = true; // this is shared!
+const highlightLayer = document.getElementById('highlightLayer');
 
 // New DOM refs
 const tapeEl = document.getElementById('tape');
@@ -48,6 +47,18 @@ const themePrefsStatus = document.getElementById('theme-prefs-status');
 const settingStepInterval = document.getElementById('setting-step-interval');
 const settingStepIntervalValue = document.getElementById('setting-step-interval-value');
 const syntaxConfigEl = document.getElementById('syntax-config');
+
+// =======================================
+// CONSTANTS
+// =======================================
+const CODEINPUT_CHUNK_SIZE = 500;
+const CODEINPUT_RENDER_THRESHOLD = 8000;
+
+// =======================================
+// VARIABLES
+// =======================================
+let debug = true;
+let codeinput_currentRenderId = 0;
 
 // =======================================
 // LONG VARIABLES & CONSTANTS
@@ -200,6 +211,12 @@ function l(log, override=false) {
     if (debug || override) console.log(log);
 }
 
+function syncScroll() {
+    const pre = highlightLayer;
+    pre.scrollTop = codeInput.scrollTop;
+    pre.scrollLeft = codeInput.scrollLeft;
+}
+
 function escapeHtml(ch) {
     switch (ch) {
         case '<': return '&lt;';
@@ -320,62 +337,44 @@ function findUnmatchedBrackets(codeStr) {
 // HIGHLIGHT
 // =======================================
 
-let currentRenderId = 0; // 全局渲染 ID
-
 function updateHighlight() {
     const text = codeInput.value;
     bfState.unmatchedBrackets = findUnmatchedBrackets(text);
-
-    // 递增渲染 ID，让旧的渲染任务失效
-    const renderId = ++currentRenderId;
-
-    highlightCode.innerHTML = '';
-
-    const CHUNK_SIZE = 500;
+    const renderId = ++codeinput_currentRenderId;
     const totalLen = text.length;
 
-    if (totalLen <= CHUNK_SIZE) {
+    if (totalLen <= CODEINPUT_RENDER_THRESHOLD) {
         let html = '';
         for (let i = 0; i < totalLen; i++) {
             const ch = text[i];
-            if (ch === '\n') {
-                html += '<br>';
-            } else {
-                html += getSpanHTML(ch, i);
-            }
+            html += ch === '\n' ? '<br>' : getSpanHTML(ch, i);
         }
-        highlightCode.innerHTML = html || '<span class="bf-comment">&#8203;</span>';
+        highlightLayer.innerHTML = html || '<span class="bf-comment">&#8203;</span>';
         return;
     }
 
+    highlightLayer.innerHTML = '';
     let processed = 0;
 
     function renderNextChunk() {
-        // 如果渲染 ID 不匹配，说明有新的更新任务，放弃当前任务
-        if (renderId !== currentRenderId) {
-            return;
-        }
+        if (renderId !== codeinput_currentRenderId) return;
 
-        const end = Math.min(processed + CHUNK_SIZE, totalLen);
+        const end = Math.min(processed + CODEINPUT_CHUNK_SIZE, totalLen);
         let html = '';
         for (let i = processed; i < end; i++) {
             const ch = text[i];
-            if (ch === '\n') {
-                html += '<br>';
-            } else {
-                html += getSpanHTML(ch, i);
-            }
+            html += ch === '\n' ? '<br>' : getSpanHTML(ch, i);
         }
-        highlightCode.insertAdjacentHTML('beforeend', html);
+        highlightLayer.insertAdjacentHTML('beforeend', html);
         processed = end;
 
         if (processed < totalLen) {
             requestAnimationFrame(renderNextChunk);
         }
     }
-
     requestAnimationFrame(renderNextChunk);
 }
+
 
 function scrollToActiveInstruction() {
     if (!bfState.sessionActive) return;
@@ -392,7 +391,7 @@ function scrollToActiveInstruction() {
     // Keep the active line ~30% from the top of the visible editor area.
     const containerHeight = codeInput.clientHeight;
     codeInput.scrollTop = Math.max(0, line * lineHeight - containerHeight * 0.3);
-    const pre = codeInput.parentElement.querySelector('.highlight-layer');
+    const pre = highlightLayer;
     if (pre) pre.scrollTop = codeInput.scrollTop;
 }
 
@@ -1403,9 +1402,10 @@ function applyConfig() {
     const fontSize = bfState.config.fontSize + 'px';
     document.documentElement.style.setProperty('--bf-font', fontFamily);
     codeInput.style.fontSize = fontSize;
-    highlightCode.style.fontSize = fontSize;
+    highlightLayer.style.fontSize = fontSize;
     code.style.fontSize = fontSize;
 }
+
 function themePrefsSaved() {
     return !!localStorage.getItem('bf-config');
 }
@@ -1590,9 +1590,8 @@ codeInput.addEventListener('input', () => {
 });
 
 codeInput.addEventListener('scroll', () => {
-    const code = document.getElementById('highlightCode');
-    code.scrollTop = codeInput.scrollTop;
-    code.scrollLeft = codeInput.scrollLeft;
+    highlightLayer.scrollTop = codeInput.scrollTop;
+    highlightLayer.scrollLeft = codeInput.scrollLeft;
 });
 
 // Debug controls
@@ -1630,11 +1629,11 @@ fileInput.addEventListener('change', () => {
 });
 
 // Breakpoint / Tool mode clicks (highlight layer receives clicks via CSS pointer-events)
-highlightCode.addEventListener('click', (e) => {
+highlightLayer.addEventListener('click', (e) => {
     // Determine whether the click landed on a character span (has data-ip) or blank area.
     let target = e.target;
     let charIp = null;
-    while (target && target !== highlightCode) {
+    while (target && target !== highlightLayer) {
         if (target.dataset && target.dataset.ip !== undefined) {
             const ip = parseInt(target.dataset.ip, 10);
             if (!isNaN(ip)) { charIp = ip; }

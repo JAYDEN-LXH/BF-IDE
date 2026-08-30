@@ -75,6 +75,18 @@ body.tool-mode #codeInput { pointer-events: none; }
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: none;
+    background-color: #444e;
+    right: 2vw;
+    margin: 0;
+    height: 85vh;
+    width: 47vw;
+    border: none;
+    border-radius: 20px;
+    bottom: 1vh;
+    position: absolute;
+    z-index: 10;
+    scrollbar-width: thin;
+    scrollbar-color: #666 rgba(255, 255, 255, 0.05);
 }
 
 .dbg-section {
@@ -586,8 +598,7 @@ body,
 body {
     background-color: #111;
     color: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     padding: 0;
     font-family: var(--bf-font), monospace;
@@ -777,22 +788,6 @@ body.light-theme .toolbar-section button:focus-visible {
     border-color: rgba(0, 0, 0, 0.15);
 }
 
-
-#debugger {
-    background-color: #444e;
-    right: 2vw;
-    margin: 0;
-    height: 85vh;
-    width: 47vw;
-    border: none;
-    border-radius: 20px;
-    bottom: 1vh;
-    position: absolute;
-    z-index: 10;
-    scrollbar-width: thin;
-    scrollbar-color: #666 rgba(255, 255, 255, 0.05);
-}
-
 #textarea {
     background-color: #444e;
     left: 2vw;
@@ -826,10 +821,10 @@ body.light-theme .toolbar-section button:focus-visible {
     width: 100%;
     font-variant-ligatures: none;
     font-feature-settings: "liga" 0, "calt" 0;
+    overflow: hidden;
 }
 
 .highlight-layer,
-.highlight-layer code,
 #codeInput {
     position: absolute;
     top: 0;
@@ -841,57 +836,47 @@ body.light-theme .toolbar-section button:focus-visible {
     
     line-height: 1.5;
     tab-size: 2;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    white-space: pre;
+    word-wrap: normal;
+    overflow-wrap: normal;
+
     border: none;
     outline: none;
-    overflow: auto;
     box-sizing: border-box;
 }
 
-.highlight-layer {
+#highlightLayer {
     background: transparent;
     color: #333;
-    pointer-events: none;
     z-index: 1;
-    margin: 0;
-    padding: 0;
+    height: 100%;
+    overflow: auto;
+    pointer-events: none;
 }
 
 #codeInput {
     background: transparent;
     color: transparent;
     caret-color: #fff;
-    z-index: 2;
-    padding: 0;
-    margin: 0;
+    z-index: 1;
     resize: none;
     overflow: auto;
-}
-
-.highlight-layer code {
-    display: block;
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    overflow: hidden;
+    scrollbar-width: auto;
+    scrollbar-color: #555 #222;
 }
 
 /* ============================================================
    SCROLLBAR STYLES (Dark Theme)
    ============================================================ */
+
 #codeInput::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
-.highlight-layer::-webkit-scrollbar {
-    width: 8px;
-}
-#codeInput::-webkit-scrollbar-track,
-.highlight-layer::-webkit-scrollbar-track {
+#codeInput::-webkit-scrollbar-track {
     background: #222;
 }
-#codeInput::-webkit-scrollbar-thumb,
-.highlight-layer::-webkit-scrollbar-thumb {
+#codeInput::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 4px;
 }
@@ -949,11 +934,9 @@ body.light-theme .code-bg { opacity: 0.3; color: #444; }
 body.light-theme #code-bg-margin { background-color: #aaa; }
 body.light-theme .highlight-layer { color: #222; }
 
-body.light-theme #codeInput::-webkit-scrollbar-track,
 body.light-theme .highlight-layer::-webkit-scrollbar-track {
     background: #ddd;
 }
-body.light-theme #codeInput::-webkit-scrollbar-thumb,
 body.light-theme .highlight-layer::-webkit-scrollbar-thumb {
     background: #999;
     border-radius: 4px;

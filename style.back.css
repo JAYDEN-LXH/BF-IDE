@@ -45,7 +45,7 @@
    ============================================================ */
 .shortcut {
     color: #aaa;
-    font-size: 0.8rem;
+    
     margin-left: 18px;
     white-space: nowrap;
 }
@@ -60,6 +60,10 @@ body.bp-mode #textarea {
 body.bp-mode .highlight-layer { pointer-events: auto; }
 body.bp-mode #codeInput { pointer-events: none; }
 
+/* Tool mode also routes clicks to the highlight layer so char/blank clicks can be detected */
+body.tool-mode .highlight-layer { pointer-events: auto; }
+body.tool-mode #codeInput { pointer-events: none; }
+
 /* ============================================================
    DEBUGGER PANEL
    ============================================================ */
@@ -68,7 +72,21 @@ body.bp-mode #codeInput { pointer-events: none; }
     flex-direction: column;
     padding: 12px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    background-color: #444e;
+    right: 2vw;
+    margin: 0;
+    height: 85vh;
+    width: 47vw;
+    border: none;
+    border-radius: 20px;
+    bottom: 1vh;
+    position: absolute;
+    z-index: 10;
+    scrollbar-width: thin;
+    scrollbar-color: #666 rgba(255, 255, 255, 0.05);
 }
 
 .dbg-section {
@@ -78,7 +96,7 @@ body.bp-mode #codeInput { pointer-events: none; }
 .dbg-title {
     font-weight: bold;
     margin-bottom: 6px;
-    font-size: 1rem;
+    
     opacity: 0.9;
 }
 
@@ -104,11 +122,11 @@ body.bp-mode #codeInput { pointer-events: none; }
     align-items: center;
     justify-content: center;
     padding: 2px 4px;
-    font-size: 0.85rem;
+    
 }
 
 .tape-cell .cell-idx {
-    font-size: 0.7rem;
+    
     opacity: 0.6;
 }
 
@@ -142,7 +160,7 @@ body.bp-mode #codeInput { pointer-events: none; }
     border-radius: 6px;
     color: inherit;
     font-family: inherit;
-    font-size: 0.95rem;
+    
 }
 
 .terminal-input:disabled {
@@ -174,7 +192,7 @@ body.bp-mode #codeInput { pointer-events: none; }
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.9rem;
+    
     opacity: 0.6;
     transition: opacity 0.2s;
 }
@@ -213,7 +231,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.9rem;
+    
 }
 
 .dbg-controls button:hover {
@@ -236,13 +254,20 @@ body.light-theme .terminal-send:not(:disabled) {
 #btn-done { background: #c62828; border-color: #b71c1c; }
 #btn-done:hover { background: #d32f2f; }
 
+#dbg-status-container.error {
+    border: 1.5px solid #f00;
+}
+#dbg-status-container.error #dbg-status {
+    border: 1.5px solid #f00;
+}
+
 .dbg-status {
     margin-top: auto;
     padding: 6px 8px;
     background: rgba(0, 0, 0, 0.25);
     border: 1px solid #555;
     border-radius: 6px;
-    font-size: 0.85rem;
+    
     font-family: inherit;
     opacity: 0.95;
 }
@@ -256,6 +281,86 @@ body.light-theme .terminal-send:not(:disabled) {
 .dbg-status-running { color: #00EEFF; }
 .dbg-status-paused { color: #EEEE11; }
 .dbg-status-waiting { color: #FF7700; }
+.dbg-status-error { color: #f11; }
+
+/* Tool mode panel (mobile breakpoint placement) */
+.tool-mode-panel {
+    margin: 6px 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid #555;
+    border-radius: 6px;
+}
+.tool-mode-info {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    font-family: inherit;
+}
+.tool-mode-char {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 0 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-weight: bold;
+}
+.tool-mode-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.tool-mode-buttons button {
+    flex: 1 1 auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px;
+    background: #555;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+}
+.tool-mode-buttons button:hover { background: #666; }
+.tool-mode-buttons .tool-confirm {
+    background: #2e7d32;
+    border-color: #1b5e20;
+}
+.tool-mode-buttons .tool-confirm:hover { background: #388e3c; }
+
+.tool-mode-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #444;
+}
+.tool-mode-hint {
+    font-size: 0.8rem;
+    color: #aaa;
+    font-family: inherit;
+}
+#tool-mode-close {
+    min-height: 36px;
+    padding: 6px 16px;
+    background: #555;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+#tool-mode-close:hover { background: #666; }
+
+/* Pre-breakpoint highlight in the editor */
+.pre-breakpoint {
+    outline: 2px dashed #ff9800;
+    outline-offset: 1px;
+    background: rgba(255, 152, 0, 0.25) !important;
+}
 
 /* ============================================================
    MODALS
@@ -291,7 +396,7 @@ body.light-theme .terminal-send:not(:disabled) {
     margin: 0;
     padding: 14px 18px;
     border-bottom: 1px solid #444;
-    font-size: 1.2rem;
+    
 }
 
 .modal-body {
@@ -344,7 +449,7 @@ body.light-theme .terminal-send:not(:disabled) {
 .help-icon {
     display: inline-block;
     margin-left: 4px;
-    font-size: 0.8rem;
+    
     opacity: 0.65;
     cursor: help;
 }
@@ -357,7 +462,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 4px;
     color: inherit;
     font-family: inherit;
-    font-size: 0.85rem;
+    
     text-align: center;
 }
 
@@ -376,7 +481,7 @@ body.light-theme .num-value {
 
 .theme-prefs-actions button {
     padding: 4px 10px;
-    font-size: 0.8rem;
+    
     border-radius: 4px;
     border: 1px solid #555;
     background: #2a2a2a;
@@ -389,7 +494,7 @@ body.light-theme .num-value {
 }
 
 .theme-prefs-status {
-    font-size: 0.8rem;
+    
     opacity: 0.85;
 }
 
@@ -423,7 +528,7 @@ body.light-theme .theme-prefs-actions button:hover {
     border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.9rem;
+    
 }
 .syn-tab.active {
     background: #1565c0;
@@ -443,7 +548,7 @@ body.light-theme .theme-prefs-actions button:hover {
 }
 .syntax-table th {
     font-weight: bold;
-    font-size: 0.85rem;
+    
     opacity: 0.8;
 }
 .syntax-table .syn-char {
@@ -481,10 +586,6 @@ body.light-theme .theme-prefs-actions button:hover {
     text-align: left;
 }
 
-* {
-    font-family: inherit;
-}
-
 #themeswitch,
 .modal,
 .modal button,
@@ -497,10 +598,11 @@ body,
 body {
     background-color: #111;
     color: #fff;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
-    font-family: 'Consolas', monospace !important;
+    font-family: var(--bf-font), monospace;
     transition: background-color 0.4s linear, color 0.4s linear;
 }
 
@@ -510,7 +612,6 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    font-size: 1.2rem;
     line-height: 1.6rem;
     margin: 0;
     padding-left: 15px;
@@ -566,7 +667,7 @@ body {
 #themeswitch {
     position: absolute;
     top: 50%;
-    font-size: 5vh;
+    
     margin: 0;
     padding: 0;
     transform: translateY(-50%);
@@ -657,7 +758,6 @@ body.light-theme .toolbar-overlay {
 }
 .toolbar-section-label {
     font-weight: bold;
-    font-size: 0.9rem;
     opacity: 0.7;
     margin: 8px 4px;
     text-transform: uppercase;
@@ -670,7 +770,7 @@ body.light-theme .toolbar-overlay {
     background: transparent;
     border: 1px solid transparent;
     color: inherit;
-    font-size: 1.2rem;
+    
     padding: 12px 20px;
     min-height: 44px;
     border-radius: 6px;
@@ -687,20 +787,6 @@ body.light-theme .toolbar-section button:hover,
 body.light-theme .toolbar-section button:focus-visible {
     background: rgba(0, 0, 0, 0.06);
     border-color: rgba(0, 0, 0, 0.15);
-}
-
-
-#debugger {
-    background-color: #444e;
-    right: 2vw;
-    margin: 0;
-    height: 85vh;
-    width: 47vw;
-    border: none;
-    border-radius: 20px;
-    bottom: 1vh;
-    position: absolute;
-    z-index: 10;
 }
 
 #textarea {
@@ -725,7 +811,7 @@ body.light-theme .toolbar-section button:focus-visible {
     margin: 0.5rem auto auto auto;
     display: inline-block;
     position: relative;
-    font-size: 1.3rem;
+    
     flex-shrink: 0;
 }
 
@@ -739,7 +825,7 @@ body.light-theme .toolbar-section button:focus-visible {
 }
 
 .highlight-layer,
-.highlight-layer code,
+#highlightCode,
 #codeInput {
     position: absolute;
     top: 0;
@@ -748,14 +834,16 @@ body.light-theme .toolbar-section button:focus-visible {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-size: 16px;
-    line-height: 1.6;
+    
+    line-height: 1.5;
     tab-size: 2;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    white-space: pre;
+    word-wrap: normal;
+    overflow: auto;
+    overflow-wrap: normal;
+
     border: none;
     outline: none;
-    overflow: auto;
     box-sizing: border-box;
 }
 
@@ -766,6 +854,10 @@ body.light-theme .toolbar-section button:focus-visible {
     z-index: 1;
     margin: 0;
     padding: 0;
+    height: 100%;
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 #codeInput {
@@ -774,16 +866,20 @@ body.light-theme .toolbar-section button:focus-visible {
     caret-color: #fff;
     z-index: 2;
     padding: 0;
+    margin: 0;
     resize: none;
     overflow: auto;
 }
 
-.highlight-layer code {
+.highlightCode {
     display: block;
     margin: 0;
     padding: 0;
+    height: auto;
     min-height: 100%;
-    overflow: hidden;
+    width: fit-content;
+    white-space: pre;
+    overflow: visible;
 }
 
 /* ============================================================
@@ -792,17 +888,30 @@ body.light-theme .toolbar-section button:focus-visible {
 #codeInput::-webkit-scrollbar {
     width: 8px;
 }
-.highlight-layer::-webkit-scrollbar {
-    width: 8px;
-}
-#codeInput::-webkit-scrollbar-track,
-.highlight-layer::-webkit-scrollbar-track {
+#codeInput::-webkit-scrollbar-track {
     background: #222;
 }
-#codeInput::-webkit-scrollbar-thumb,
-.highlight-layer::-webkit-scrollbar-thumb {
+#codeInput::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 4px;
+}
+.highlight-layer::-webkit-scrollbar {
+    display: none;
+}
+
+#debugger::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+#debugger::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+}
+#debugger::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 3px;
+}
+#debugger::-webkit-scrollbar-thumb:hover {
+    background: #888;
 }
 
 /* ============================================================
@@ -821,7 +930,7 @@ body.light-theme .bf-in { color: #1e7a4a; }
 body.light-theme .bf-out { color: #1a6ba8; }
 body.light-theme .bf-comment { color: #b85a1a; font-weight: bold; font-style: italic; }
 
-body.light-theme .dbg-status-idle { color: #bbbbbb; }
+body.light-theme .dbg-status-idle { color: #334; }
 body.light-theme .dbg-status-ready { color: #007a33; }
 body.light-theme .dbg-status-running { color: #006699; }
 body.light-theme .dbg-status-paused { color: #b38f00; }
@@ -834,7 +943,7 @@ body.light-theme #mainTitle { color: #444; }
 body.light-theme #themeswitch { background-color: #999; }
 
 body.light-theme #textarea { background-color: #ccce; opacity: 0.85; }
-body.light-theme #debugger { background-color: #ccce; opacity: 0.85; }
+body.light-theme #debugger { background-color: #ccce; opacity: 0.85; scrollbar-color: #aaa rgba(0, 0, 0, 0.05);}
 body.light-theme #textarea-header { color: #222; }
 
 body.light-theme #codeInput { caret-color: #222; }
@@ -851,6 +960,18 @@ body.light-theme #codeInput::-webkit-scrollbar-thumb,
 body.light-theme .highlight-layer::-webkit-scrollbar-thumb {
     background: #999;
     border-radius: 4px;
+}
+body.light-theme #debugger::-webkit-scrollbar-thumb {
+    background: #aaa;
+}
+body.light-theme #debugger::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+body.light-theme #debugger #output::-webkit-scrollbar-thumb {
+    background: #999;
+}
+body.light-theme #debugger #output {
+    scrollbar-color: #999;
 }
 
 /* ============================================================
@@ -887,6 +1008,10 @@ body.light-theme .modal {
     color: #222;
     border-color: #888;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.light-theme #settings-save {
+    color: #fff;
 }
 
 body.light-theme .syntax-table th,
@@ -926,11 +1051,11 @@ body.light-theme .terminal-input:not(:disabled) {
     box-shadow: 0 0 4px #1e7a4a;
 }
 
-/* MEDIA RESPONSIVE STYLESHEET */
-@media (max-width: 1200px) {
-    body {
-        font-size: 1.5em;
-    }
+/* ============================================================
+   MOBILE & TABLET COMPATIBILITY CUSTOMIZATIONS
+   ============================================================ */
+
+@media (max-width: 1024px){
     .toolbar-section {
         flex: 1 0 40%;
     }
@@ -948,4 +1073,114 @@ body.light-theme .terminal-input:not(:disabled) {
         transform: translateX(-50%);
         top: 13vh;
     }
+}
+
+/* ============================================================
+   MOBILE (<= 768px) OPTIMIZATIONS
+   ============================================================ */
+@media (max-width: 768px) {
+    /* Pain 1: header — simplify title, larger touch targets, safe padding */
+    #header {
+        padding: 0 12px;
+        box-sizing: border-box;
+    }
+    #mainTitle {
+        font-size: 0;
+        left: max(0.5rem, env(safe-area-inset-top), env(safe-area-inset-left));
+    }
+    #mainTitle::before {
+        content: "BF IDE";
+        font-size: 1.3rem;
+        display: inline-block;
+    }
+    .toolbar-toggle {
+        right: calc(44px + 18px);
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    #themeswitch {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Pain 2: keyboard-open compresses debugger to status bar only */
+    body.keyboard-open #debugger {
+        height: auto !important;
+        min-height: 0;
+    }
+    body.keyboard-open #debugger .dbg-section,
+    body.keyboard-open #debugger .dbg-controls,
+    body.keyboard-open #debugger .tool-mode-panel {
+        display: none;
+    }
+    body.keyboard-open #debugger .dbg-status {
+        display: block;
+    }
+    body.keyboard-open #textarea {
+        height: auto !important;
+        bottom: 0;
+    }
+
+    /* Pain 4: tape cell readability */
+    .tape-cell {
+        min-width: 28px;
+        padding: 2px;
+    }
+    .tape-cell .cell-val {
+        font-size: 1rem;
+    }
+    .tape-cell .cell-idx {
+        font-size: 0.5rem;
+    }
+    .tape-cell.tape-pointer {
+        border: 3px solid #0ff;
+    }
+
+    /* Pain 5: output + terminal */
+    .output {
+        max-height: 20vh;
+    }
+    .terminal-row {
+        flex-direction: row;
+    }
+    .terminal-send {
+        min-height: 44px;
+        padding: 8px 16px;
+    }
+
+    /* Pain 6: settings modal full-screen */
+    .modal {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0;
+    }
+    .modal-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    input[type="range"] {
+        min-height: 44px;
+    }
+    .setting-row input[type="text"],
+    .setting-row input[type="number"],
+    .setting-row select {
+        min-height: 40px;
+    }
+}
+
+* {
+    font-family: inherit;
+}
+
+/* DEFAULT PAGE FONT */
+@font-face {
+    font-family: 'Cascadia Mono';
+    src: url('./fonts/Cascadia-Mono.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
 }
