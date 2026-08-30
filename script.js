@@ -1684,17 +1684,25 @@ settingFontsize.addEventListener('input', () => {
 settingStepInterval.addEventListener('input', () => {
     settingStepIntervalValue.value = settingStepInterval.value;
 });
+settingFontsizeValue.addEventListener('input', () => {
+    const val = settingFontsizeValue.value;
+    if (val === '' || val === '-' || isNaN(parseInt(val, 10))) {
+        // 空值或无效值，不做任何事
+        return;
+    }
+    const num = parseInt(val, 10);
+    if (num >= 10 && num <= 32) {
+        settingFontsize.value = String(num);
+        bfState.config.fontSize = num;
+        applyConfig();
+    }
+});
+
 settingFontsizeValue.addEventListener('blur', () => {
     const n = clampNumValue(settingFontsizeValue, 10, 32);
     settingFontsize.value = String(n);
     bfState.config.fontSize = n;
     applyConfig();
-});
-settingFontsizeValue.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        settingFontsizeValue.blur();
-    }
 });
 settingStepIntervalValue.addEventListener('input', () => {
     const n = clampNumValue(settingStepIntervalValue, 8, 1000);
