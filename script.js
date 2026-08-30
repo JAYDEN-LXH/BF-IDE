@@ -11,8 +11,6 @@ const IDEarea = document.getElementById('textarea');
 const codeInput = document.getElementById('codeInput');
 const debuggerPanel = document.getElementById('debugger');
 const highlightLayer = document.getElementById('highlightLayer');
-
-// New DOM refs
 const tapeEl = document.getElementById('tape');
 const outputEl = document.getElementById('output');
 const terminalInput = document.getElementById('terminal-input');
@@ -31,8 +29,7 @@ const toolModeChar = document.getElementById('tool-mode-char');
 const fileInput = document.getElementById('file-input');
 const settingsModal = document.getElementById('settings-modal');
 const helpModal = document.getElementById('help-modal');
-
-// Settings modal refs
+const inputToolbar = document.getElementById('input-toolbar');
 const settingFontSelect = document.getElementById('setting-font-select');
 const settingFontInput = document.getElementById('setting-font-input');
 const settingFontsize = document.getElementById('setting-fontsize');
@@ -209,6 +206,31 @@ const bfState = {
 // this is logger! SHARED!
 function l(log, override=false) {
     if (debug || override) console.log(log);
+}
+
+function insertCharAtCursor(char) {
+    const start = codeInput.selectionStart;
+    const end = codeInput.selectionEnd;
+    const value = codeInput.value;
+    codeInput.value = value.slice(0, start) + char + value.slice(end);
+    codeInput.selectionStart = codeInput.selectionEnd = start + 1;
+    codeInput.focus();
+    updateHighlight();
+}
+function deleteCharBeforeCursor() {
+    const start = codeInput.selectionStart;
+    const end = codeInput.selectionEnd;
+    if (start === 0 && end === 0) return;
+    const value = codeInput.value;
+    if (start !== end) {
+        codeInput.value = value.slice(0, start) + value.slice(end);
+        codeInput.selectionStart = codeInput.selectionEnd = start;
+    } else if (start > 0) {
+        codeInput.value = value.slice(0, start - 1) + value.slice(start);
+        codeInput.selectionStart = codeInput.selectionEnd = start - 1;
+    }
+    codeInput.focus();
+    updateHighlight();
 }
 
 function syncScroll() {
@@ -1746,6 +1768,24 @@ document.getElementById('help-close').addEventListener('click', closeHelp);
             else modal.hidden = true;
         }
     });
+});
+
+// =======================================
+// INPUT TOOL FOR MOBILE
+// =======================================
+inputToolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    // 处理退格键
+    if (btn.id === 'btn-clear') {
+        deleteCharBeforeCursor();
+        return;
+    }
+
+    // 处理普通插入键
+    const char = btn.dataset.bfChar;
+    if (char) insertCharAtCursor(char);
 });
 
 // Window resize: re-render tape

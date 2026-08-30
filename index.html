@@ -49,7 +49,7 @@
                             </button>
                         </div>
                         <div class="toolbar-section">
-                            <div class="toolbar-section-label">Breakpoints</div>
+                            <div class="toolbar-section-label">Breakpoints (BP)</div>
                             <button type="button" data-action="breakpoint-mode">
                                 BP Click Mode <span class="shortcut">Ctrl+B</span>
                             </button>
@@ -94,6 +94,20 @@
                 <pre class="highlight-layer" aria-hidden="true" id="highlightLayer"></pre>
                 <textarea id="codeInput" spellcheck="false"></textarea>
             </div>
+
+            <!-- mobile input helper -->
+            <div id="input-toolbar" class="input-toolbar">
+                <button type="button" data-bf-char=">">&gt;</button>
+                <button type="button" data-bf-char="<">&lt;</button>
+                <button type="button" data-bf-char="+">+</button>
+                <button type="button" data-bf-char="-">-</button>
+                <button type="button" data-bf-char=".">.</button>
+                <button type="button" data-bf-char=",">,</button>
+                <button type="button" data-bf-char="[">[</button>
+                <button type="button" data-bf-char="]">]</button>
+                <button type="button" id="btn-clear" title="Clear all">⌫</button>
+                <button type="button" id="btn-space" data-bf-char=" " title="Space">␣</button>
+            </div>
         </div>
         <div id="debugger">
                 <div class="dbg-section">
@@ -114,25 +128,6 @@
                         <button type="button" id="btn-step-back" title="Step Back (F9)">Step Back</button>
                         <button type="button" id="btn-reset" title="Reset (Ctrl+Alt+R)">Reset</button>
                         <button type="button" id="btn-done" title="Done (Ctrl+Alt+D)">Done</button>
-                </div>
-                <div id="tool-mode-panel" class="tool-mode-panel" hidden>
-                        <div class="tool-mode-info">
-                                Pre-breakpoint: <span id="tool-mode-pos">—</span>
-                                <span id="tool-mode-char" class="tool-mode-char"></span>
-                                <br>
-                                Currently <span id="tool-mode-isbp">is not</span> a breakpoint
-                        </div>
-                        <div class="tool-mode-buttons">
-                                <button type="button" id="tool-fast-back" title="Move back 5 commands">⟪</button>
-                                <button type="button" id="tool-step-back" title="Move back 1 command">←</button>
-                                <button type="button" id="tool-confirm" title="Toggle breakpoint here" class="tool-confirm">Set/Unset</button>
-                                <button type="button" id="tool-step-fwd" title="Move forward 1 command">→</button>
-                                <button type="button" id="tool-fast-fwd" title="Move forward 5 commands">⟫</button>
-                        </div>
-                        <div class="tool-mode-footer">
-                                <span class="tool-mode-hint">Ctrl+Alt+T to toggle</span>
-                                <button type="button" id="tool-mode-close">Close</button>
-                        </div>
                 </div>
                 <div class="dbg-status" id="dbg-status-container">
                         <p id="dbg-status-label">Data</p>
@@ -257,6 +252,27 @@
                         <div class="modal-footer">
                                 <button type="button" id="help-close">Close</button>
                         </div>
+                </div>
+        </div>
+
+        <!-- Breakpoint Tool -->
+        <div id="tool-mode-panel" class="tool-mode-panel" hidden>
+                <div class="tool-mode-info">
+                        Pre-breakpoint: <span id="tool-mode-pos">—</span>
+                        <span id="tool-mode-char" class="tool-mode-char"></span>
+                        <br>
+                        Currently <span id="tool-mode-isbp">is not</span> a breakpoint
+                </div>
+                <div class="tool-mode-buttons">
+                        <button type="button" id="tool-fast-back" title="Move back 5 commands">⟪</button>
+                        <button type="button" id="tool-step-back" title="Move back 1 command">←</button>
+                        <button type="button" id="tool-confirm" title="Toggle breakpoint here" class="tool-confirm">Set/Unset</button>
+                        <button type="button" id="tool-step-fwd" title="Move forward 1 command">→</button>
+                        <button type="button" id="tool-fast-fwd" title="Move forward 5 commands">⟫</button>
+                </div>
+                <div class="tool-mode-footer">
+                        <span class="tool-mode-hint">Ctrl+Alt+T to toggle</span>
+                        <button type="button" id="tool-mode-close">Close</button>
                 </div>
         </div>
 

@@ -285,11 +285,17 @@ body.light-theme .terminal-send:not(:disabled) {
 
 /* Tool mode panel (mobile breakpoint placement) */
 .tool-mode-panel {
+    position: fixed;
     margin: 6px 0;
     padding: 8px;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.8);
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 1vh;
     border: 1px solid #555;
     border-radius: 6px;
+    z-index: 999;
+    width: 90vw;
 }
 .tool-mode-info {
     font-size: 0.9rem;
@@ -360,6 +366,59 @@ body.light-theme .terminal-send:not(:disabled) {
     outline: 2px dashed #ff9800;
     outline-offset: 1px;
     background: rgba(255, 152, 0, 0.25) !important;
+}
+
+/* ============================================================
+   MOBILE INPUT HELPER
+   ============================================================ */
+.input-toolbar {
+    display: none;
+    gap: 4px;
+    padding: 6px 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-top: 6px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.input-toolbar button {
+    min-width: 40px;
+    min-height: 44px;
+    padding: 4px 8px;
+    font-size: 1.1rem;
+    font-family: 'Cascadia Mono', monospace;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ddd;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.input-toolbar button:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.92);
+}
+
+.input-toolbar button:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+#btn-clear,
+#btn-space {
+    background: rgba(255, 70, 70, 0.15);
+    border-color: rgba(255, 70, 70, 0.2);
+    color: #ff6b6b;
+}
+#btn-space {
+    background: rgba(70, 150, 255, 0.12);
+    border-color: rgba(70, 150, 255, 0.18);
+    color: #6b9fff;
 }
 
 /* ============================================================
@@ -1032,6 +1091,37 @@ body.light-theme .terminal-input:not(:disabled) {
     box-shadow: 0 0 4px #1e7a4a;
 }
 
+body.light-theme .input-toolbar {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .input-toolbar button {
+    background: rgba(0, 0, 0, 0.06);
+    color: #333;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .input-toolbar button:active {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .input-toolbar button:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme #btn-clear,
+body.light-theme #btn-space {
+    background: rgba(200, 50, 50, 0.1);
+    border-color: rgba(200, 50, 50, 0.15);
+    color: #c0392b;
+}
+body.light-theme #btn-space {
+    background: rgba(40, 100, 200, 0.08);
+    border-color: rgba(40, 100, 200, 0.12);
+    color: #2980b9;
+}
+
 /* ============================================================
    MOBILE & TABLET COMPATIBILITY CUSTOMIZATIONS
    ============================================================ */
@@ -1151,6 +1241,15 @@ body.light-theme .terminal-input:not(:disabled) {
     .setting-row input[type="number"],
     .setting-row select {
         min-height: 40px;
+    }
+    .input-toolbar {
+        display: flex;
+    }
+    .input-toolbar button {
+        min-width: 36px;
+        min-height: 40px;
+        font-size: 1rem;
+        padding: 4px 6px;
     }
 }
 
