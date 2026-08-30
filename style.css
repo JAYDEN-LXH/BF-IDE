@@ -78,11 +78,11 @@ body.tool-mode #codeInput { pointer-events: none; }
     background-color: #444e;
     right: 2vw;
     margin: 0;
-    height: 85vh;
+    height: 85dvh;
     width: 47vw;
     border: none;
     border-radius: 20px;
-    bottom: 1vh;
+    bottom: 1dvh;
     position: absolute;
     z-index: 10;
     scrollbar-width: thin;
@@ -139,7 +139,7 @@ body.tool-mode #codeInput { pointer-events: none; }
 .output {
     flex: 1 1 auto;
     min-height: 80px;
-    max-height: 40vh;
+    max-height: 40dvh;
     overflow: auto;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid #555;
@@ -272,8 +272,8 @@ body.light-theme .terminal-send:not(:disabled) {
     opacity: 0.95;
 }
 #dbg-status-label {
-    margin-bottom: 1vh;
-    margin-top: 0.1vh;
+    margin-bottom: 1dvh;
+    margin-top: 0.1dvh;
 }
 
 .dbg-status-idle { color: #999999; }
@@ -386,7 +386,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 10px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     width: min(560px, 92vw);
-    max-height: 86vh;
+    max-height: 86dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -610,7 +610,7 @@ body {
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     line-height: 1.6rem;
     margin: 0;
     padding-left: 15px;
@@ -634,7 +634,7 @@ body {
     position: absolute;
     left: 5px;
     width: 3px;
-    height: 98vh;
+    height: 98dvh;
     top: 50%;
     transform: translateY(-50%);
     background-color: #555;
@@ -646,7 +646,7 @@ body {
 
 #header {
     width: 100vw;
-    height: 10vh;
+    height: 10dvh;
     position: relative;
     z-index: 50;
     background-color: rgba(80, 80, 75, 0.8);
@@ -671,8 +671,8 @@ body {
     padding: 0;
     transform: translateY(-50%);
     right: 10px;
-    width: 8vh;
-    height: 8vh;
+    width: 8dvh;
+    height: 8dvh;
     background: #666;
     border-radius: 6px;
     outline: none;
@@ -692,9 +692,9 @@ body {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right: calc(8vh + 18px); /* sit just left of the theme switch */
-    width: 8vh;
-    height: 8vh;
+    right: calc(8dvh + 18px); /* sit just left of the theme switch */
+    width: 8dvh;
+    height: 8dvh;
     background: #666;
     border-radius: 6px;
     outline: none;
@@ -724,7 +724,7 @@ body.light-theme .toolbar-toggle {
     top: 0;
     left: 0;
     width: 100vw;
-    max-height: 100vh;
+    max-height: 100dvh;
     overflow-y: auto;
     background-color: #1e1e1e;
     color: #eee;
@@ -792,11 +792,11 @@ body.light-theme .toolbar-section button:focus-visible {
     background-color: #444e;
     left: 2vw;
     margin: 0;
-    height: 85vh;
+    height: 85dvh;
     width: 47vw;
     border: none;
     border-radius: 20px;
-    bottom: 1vh;
+    bottom: 1dvh;
     padding: 0 0 0 1%;
     box-sizing: border-box;
     position: absolute;
@@ -1041,17 +1041,17 @@ body.light-theme .terminal-input:not(:disabled) {
     }
     #debugger {
         width: 90vw;
-        height: 42vh;
+        height: 42dvh;
         left: 50%;
-        bottom: 0.5vh;
+        bottom: 0.5dvh;
         transform: translateX(-50%);
     }
     #textarea {
         width: 90vw;
-        height: 42vh;
+        height: 42dvh;
         left: 50%;
         transform: translateX(-50%);
-        top: 13vh;
+        top: 13dvh;
     }
 }
 
@@ -1122,7 +1122,7 @@ body.light-theme .terminal-input:not(:disabled) {
 
     /* Pain 5: output + terminal */
     .output {
-        max-height: 20vh;
+        max-height: 20dvh;
     }
     .terminal-row {
         flex-direction: row;
@@ -1135,8 +1135,8 @@ body.light-theme .terminal-input:not(:disabled) {
     /* Pain 6: settings modal full-screen */
     .modal {
         width: 100vw !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
         border-radius: 0;
     }
     .modal-body {

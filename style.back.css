@@ -598,8 +598,7 @@ body,
 body {
     background-color: #111;
     color: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     margin: 0;
     padding: 0;
     font-family: var(--bf-font), monospace;
@@ -822,10 +821,10 @@ body.light-theme .toolbar-section button:focus-visible {
     width: 100%;
     font-variant-ligatures: none;
     font-feature-settings: "liga" 0, "calt" 0;
+    overflow: hidden;
 }
 
 .highlight-layer,
-#highlightCode,
 #codeInput {
     position: absolute;
     top: 0;
@@ -839,7 +838,6 @@ body.light-theme .toolbar-section button:focus-visible {
     tab-size: 2;
     white-space: pre;
     word-wrap: normal;
-    overflow: auto;
     overflow-wrap: normal;
 
     border: none;
@@ -847,46 +845,33 @@ body.light-theme .toolbar-section button:focus-visible {
     box-sizing: border-box;
 }
 
-.highlight-layer {
+#highlightLayer {
     background: transparent;
     color: #333;
-    pointer-events: none;
     z-index: 1;
-    margin: 0;
-    padding: 0;
     height: 100%;
     overflow: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    pointer-events: none;
 }
 
 #codeInput {
     background: transparent;
     color: transparent;
     caret-color: #fff;
-    z-index: 2;
-    padding: 0;
-    margin: 0;
+    z-index: 1;
     resize: none;
     overflow: auto;
-}
-
-.highlightCode {
-    display: block;
-    margin: 0;
-    padding: 0;
-    height: auto;
-    min-height: 100%;
-    width: fit-content;
-    white-space: pre;
-    overflow: visible;
+    scrollbar-width: auto;
+    scrollbar-color: #555 #222;
 }
 
 /* ============================================================
    SCROLLBAR STYLES (Dark Theme)
    ============================================================ */
+
 #codeInput::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
 #codeInput::-webkit-scrollbar-track {
     background: #222;
@@ -894,9 +879,6 @@ body.light-theme .toolbar-section button:focus-visible {
 #codeInput::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 4px;
-}
-.highlight-layer::-webkit-scrollbar {
-    display: none;
 }
 
 #debugger::-webkit-scrollbar {
@@ -952,11 +934,9 @@ body.light-theme .code-bg { opacity: 0.3; color: #444; }
 body.light-theme #code-bg-margin { background-color: #aaa; }
 body.light-theme .highlight-layer { color: #222; }
 
-body.light-theme #codeInput::-webkit-scrollbar-track,
 body.light-theme .highlight-layer::-webkit-scrollbar-track {
     background: #ddd;
 }
-body.light-theme #codeInput::-webkit-scrollbar-thumb,
 body.light-theme .highlight-layer::-webkit-scrollbar-thumb {
     background: #999;
     border-radius: 4px;
