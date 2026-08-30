@@ -1684,11 +1684,17 @@ settingFontsize.addEventListener('input', () => {
 settingStepInterval.addEventListener('input', () => {
     settingStepIntervalValue.value = settingStepInterval.value;
 });
-settingFontsizeValue.addEventListener('input', () => {
+settingFontsizeValue.addEventListener('blur', () => {
     const n = clampNumValue(settingFontsizeValue, 10, 32);
     settingFontsize.value = String(n);
     bfState.config.fontSize = n;
     applyConfig();
+});
+settingFontsizeValue.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        settingFontsizeValue.blur();
+    }
 });
 settingStepIntervalValue.addEventListener('input', () => {
     const n = clampNumValue(settingStepIntervalValue, 8, 1000);
