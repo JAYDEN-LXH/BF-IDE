@@ -278,7 +278,7 @@ function getSpanHTML(char, index) {
         else if (cfg.style === 'italic') style += 'font-style:italic;';
         else if (cfg.style === 'bolditalic') style += 'font-weight:bold;font-style:italic;';
     }
-    let extra = '';
+    let extra = ''; // TODO: CONTINUE DOUBAO IP MAP NONSENSE THING
     if (index !== undefined) {
         // bfState.ip is a pure-instruction index; map to raw position for highlight.
         const rawIp = bfState.ipMap ? bfState.ipMap[bfState.ip] : bfState.ip;
@@ -354,6 +354,33 @@ function findUnmatchedBrackets(codeStr) {
     for (const i of stack) unmatched.add(i);
     return unmatched;
 }
+
+/**
+ * Pre‑compute bracket jump lookup for pure BF command string (only ><+-.,[]).
+ * @param {string} codeStr filtered bf code (no comments)
+ * @returns {number[]} bracketMap[i] = matching bracket index; -1 if none / not bracket
+ */
+function buildBracketMap(codeStr) {
+    const len = codeStr.length;
+    const bracketMap = new Array(len).fill(-1);
+    const stack = [];
+    for (let i = 0; i < len; i++) {
+        const ch = codeStr[i];
+        if (ch === '[') {
+            stack.push(i);
+        } else if (ch === ']') {
+            if (stack.length === 0) {
+                // unmatched ]
+                continue;
+            }
+            const openPos = stack.pop();
+            bracketMap[openPos] = i;
+            bracketMap[i] = openPos;
+        }
+    }
+    return bracketMap;
+}
+
 
 // =======================================
 // HIGHLIGHT
