@@ -372,6 +372,8 @@ body.light-theme .terminal-send:not(:disabled) {
    MOBILE INPUT HELPER
    ============================================================ */
 .input-toolbar {
+    position: sticky;
+    bottom: 0;
     display: none;
     gap: 4px;
     padding: 6px 4px;
@@ -381,6 +383,7 @@ body.light-theme .terminal-send:not(:disabled) {
     border-radius: 8px;
     margin-top: 6px;
     flex-shrink: 0;
+    z-index: 10;
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
