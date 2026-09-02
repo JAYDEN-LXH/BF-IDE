@@ -55,6 +55,7 @@ const CODEINPUT_RENDER_THRESHOLD = 8000;
 // VARIABLES
 // =======================================
 let debug = true;
+let isSyncing = false;
 let codeinput_currentRenderId = 0;
 
 // =======================================
@@ -171,6 +172,7 @@ const bfState = {
 
     // 括号匹配缓存
     unmatchedBrackets: new Set(),
+    bracketMap: [],
 
     // 标记当前执行是由 Run 还是 Step 触发（用于 `,` 输入后的行为）
     startedByRun: false,
@@ -233,10 +235,12 @@ function deleteCharBeforeCursor() {
     updateHighlight();
 }
 
-function syncScroll() {
-    const pre = highlightLayer;
-    pre.scrollTop = codeInput.scrollTop;
-    pre.scrollLeft = codeInput.scrollLeft;
+function syncScroll(source, target) {
+    if (isSyncing) return;
+    isSyncing = true;
+    target.scrollTop = source.scrollTop;
+    target.scrollLeft = source.scrollLeft;
+    isSyncing = false;
 }
 
 function escapeHtml(ch) {
@@ -319,21 +323,6 @@ function syntaxEqual(a, b) {
 // =======================================
 // BRACKET MATCHING
 // =======================================
-
-function findMatchingBracket(codeStr, startIp, direction) {
-    const open = direction === 1 ? '[' : ']';
-    const close = direction === 1 ? ']' : '[';
-    let depth = 0;
-    for (let i = startIp; direction === 1 ? i < codeStr.length : i >= 0; i += direction) {
-        const c = codeStr[i];
-        if (c === open) depth++;
-        else if (c === close) {
-            depth--;
-            if (depth === 0) return i;
-        }
-    }
-    return -1;
-}
 
 function findUnmatchedBrackets(codeStr) {
     const unmatched = new Set();
@@ -425,21 +414,25 @@ function updateHighlight() {
 }
 
 
-function scrollToActiveInstruction() {
-    if (!bfState.sessionActive) return;
+function scrollToActiveInstruction(targetIp = null, override = false) {
+    if (targetIp === null) {
+        if (!bfState.sessionActive && !override) return;
+        targetIp = bfState.ip;
+    }
+
     const text = codeInput.value;
-    // Map pure IP to its raw position in the source text.
-    const rawIp = bfState.ipMap ? bfState.ipMap[bfState.ip] : bfState.ip;
+    const rawIp = bfState.ipMap ? bfState.ipMap[targetIp] : targetIp;
     if (rawIp === undefined || rawIp >= text.length) return;
-    // Compute line number for the raw IP position.
+
     let line = 0;
     for (let i = 0; i < rawIp && i < text.length; i++) {
         if (text[i] === '\n') line++;
     }
+
     const lineHeight = parseFloat(getComputedStyle(codeInput).lineHeight) || 16;
-    // Keep the active line ~30% from the top of the visible editor area.
     const containerHeight = codeInput.clientHeight;
     codeInput.scrollTop = Math.max(0, line * lineHeight - containerHeight * 0.3);
+
     const pre = highlightLayer;
     if (pre) pre.scrollTop = codeInput.scrollTop;
 }
@@ -500,6 +493,7 @@ function createSession() {
     bfState.rawCode = rawCode;
     bfState.code = pureChars.join('');
     bfState.ipMap = ipMap;
+    bfState.bracketMap = buildBracketMap(bfState.code);
     bfState.tape = [0];
     bfState.pointer = 0;
     bfState.ip = 0;
@@ -585,22 +579,26 @@ function stepOnce() {
             // Auto-skip: write 0 and continue (no pause).
             bfState.tape[bfState.pointer] = 0;
             break;
-        case '[':
-            if (bfState.tape[bfState.pointer] === 0) {
-                const m = findMatchingBracket(bfState.code, bfState.ip, 1);
-                bfState.errorMsg = `Unmatched '[' at position ${bfState.ip}`;
-                if (m === -1) return 'halt'; // unmatched; halt
-                bfState.ip = m;
-            }
-            break;
-        case ']':
-            if (bfState.tape[bfState.pointer] !== 0) {
-                const m = findMatchingBracket(bfState.code, bfState.ip, -1);
-                bfState.errorMsg = `Unmatched ']' at position ${bfState.ip}`;
-                if (m === -1) return 'halt'; // unmatched; halt
-                bfState.ip = m;
-            }
-            break;
+            case '[':
+                if (bfState.tape[bfState.pointer] === 0) {
+                    const m = bfState.bracketMap[bfState.ip];
+                    if (m === -1) {
+                        bfState.errorMsg = `Unmatched '[' at position ${bfState.ip}`;
+                        return 'halt';
+                    }
+                    bfState.ip = m;
+                }
+                break;
+            case ']':
+                if (bfState.tape[bfState.pointer] !== 0) {
+                    const m = bfState.bracketMap[bfState.ip];
+                    if (m === -1) {
+                        bfState.errorMsg = `Unmatched ']' at position ${bfState.ip}`;
+                        return 'halt';
+                    }
+                    bfState.ip = m;
+                }
+                break;            
         // non-command chars: ignored (comments)
     }
     bfState.ip++;
@@ -789,6 +787,7 @@ function submitTerminalInput() {
     const codeVal = ch.charCodeAt(0) & 0xFF;
     bfState.tape[bfState.pointer] = codeVal;
     bfState.lastInput = ch;
+    bfState.output += ch;
     bfState.inputPending = false;
     disableTerminalInput();
     bfState.ip++; // advance past the `,`
@@ -982,6 +981,7 @@ function movePreBreakpoint(dir, fast) {
             bfState.preBreakpoint = next;
         }
     }
+    scrollToActiveInstruction(bfState.preBreakpoint, true);
     updateToolModeUI();
     updateHighlight();
 }
@@ -1639,9 +1639,16 @@ codeInput.addEventListener('input', () => {
 });
 
 codeInput.addEventListener('scroll', () => {
-    highlightLayer.scrollTop = codeInput.scrollTop;
-    highlightLayer.scrollLeft = codeInput.scrollLeft;
+    if (!bfState.breakpointMode) { // don't waste resource!
+        syncScroll(codeInput, highlightLayer);
+    }
 });
+
+highlightLayer.addEventListener('scroll', () => {
+    if (bfState.breakpointMode) {
+        syncScroll(highlightLayer, codeInput);
+    }
+})
 
 // Debug controls
 btnRun.addEventListener('click', () => {

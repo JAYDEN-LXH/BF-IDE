@@ -56,7 +56,7 @@ body.bp-mode #textarea {
     transition: box-shadow 0s;
 }
 
-/* When breakpoint mode is on, highlight layer receives clicks, textarea is click-through */
+/* When breakpoint mode is on, highlight layer receives clicks */
 body.bp-mode .highlight-layer { pointer-events: auto; }
 body.bp-mode #codeInput { pointer-events: none; }
 
@@ -914,14 +914,13 @@ body.light-theme .toolbar-section button:focus-visible {
     z-index: 1;
     height: 100%;
     overflow: auto;
-    pointer-events: none;
 }
 
 #codeInput {
     background: transparent;
     color: transparent;
     caret-color: #fff;
-    z-index: 1;
+    z-index: 2;
     resize: none;
     overflow: auto;
     scrollbar-width: auto;
