@@ -43,6 +43,7 @@ const btnClearThemePrefs = document.getElementById('btn-clear-theme-prefs');
 const themePrefsStatus = document.getElementById('theme-prefs-status');
 const settingStepInterval = document.getElementById('setting-step-interval');
 const settingStepIntervalValue = document.getElementById('setting-step-interval-value');
+const settingHighlightInput = document.getElementById('setting-highlight-input');
 const syntaxConfigEl = document.getElementById('syntax-config');
 
 // =======================================
@@ -182,7 +183,7 @@ const bfState = {
 
     // 配置
     config: {
-        font: 'Cascadia Mono',
+        font: 'CascadiaMonoDefault',
         fontSize: 16,
         showBackground: true,
         theme: 'dark',
@@ -191,6 +192,7 @@ const bfState = {
         pauseOnInput: true,
         skipComments: true, // tool mode: skip non-command chars when moving
         optimalRunning: false, // Run mode: refresh UI every 200ms instead of every step
+        highlightInput: true,
         syntax: {
             dark: cloneSyntax(DARK_SYNTAX_DEFAULT),
             light: cloneSyntax(LIGHT_SYNTAX_DEFAULT)
@@ -278,9 +280,9 @@ function getSpanHTML(char, index) {
     let style = '';
     if (cfg) {
         style = `color:${cfg.color};`;
-        if (cfg.style === 'bold') style += 'font-weight:bold;';
+        if (cfg.style === 'bold') style += 'font-weight:700;';
         else if (cfg.style === 'italic') style += 'font-style:italic;';
-        else if (cfg.style === 'bolditalic') style += 'font-weight:bold;font-style:italic;';
+        else if (cfg.style === 'bolditalic') style += 'font-weight:700;font-style:italic;';
     }
     let extra = ''; // TODO: CONTINUE DOUBAO IP MAP NONSENSE THING
     if (index !== undefined) {
@@ -567,7 +569,7 @@ function stepOnce() {
                 bfState.errorMsg = 'Output limit reached (10,000 chars)';
                 return 'halt';
             }
-            bfState.output += String.fromCharCode(bfState.tape[bfState.pointer]);
+            bfState.output += escapeHtml(String.fromCharCode(bfState.tape[bfState.pointer]));
             break;
         case ',':
             if (bfState.config.pauseOnInput) {
@@ -611,11 +613,11 @@ function stepOnce() {
 
 function startRun() {
     if (bfState.inputPending) return; // must input first
-    bfState.startedByRun = true; // 标记为 Run 触发
+    bfState.startedByRun = true;
     if (!bfState.sessionActive) {
         if (!createSession()) return; // too large, aborted
         bfState.status = 'running';
-    };
+    }
     if (bfState.ip >= bfState.code.length) return;
 
     // If we're sitting on a breakpoint, skip the breakpoint check on first step.
@@ -625,18 +627,73 @@ function startRun() {
     }
 
     bfState.running = true;
-    bfState.status = 'running'; // make sure it is correct
+    bfState.status = 'running';
     if (bfState.stepInterval) clearInterval(bfState.stepInterval);
     bfState.stepInterval = setInterval(runStep, bfState.config.stepIntervalMs);
 
     // In Optimal Running mode, decouple execution from rendering:
-    // runStep only mutates bfState; a 200ms interval refreshes the DOM.
+    // runStep only mutates bfState; a requestAnimationFrame loop refreshes the DOM.
+    // The refresh rate is adaptive: every N frames, where N is chosen so that
+    // the effective refresh interval is at least 50ms, but never more than 200ms.
     if (bfState.renderInterval) {
         clearInterval(bfState.renderInterval);
         bfState.renderInterval = null;
     }
+    if (bfState.renderLoopId) {
+        cancelAnimationFrame(bfState.renderLoopId);
+        bfState.renderLoopId = null;
+    }
+
     if (bfState.config.optimalRunning) {
-        bfState.renderInterval = setInterval(updateUI, 200);
+        // Minimum 50ms between UI updates, but at least 2 frames.
+        // For 60Hz: 2 frames ≈ 33ms → clamp to 50ms → 20 updates/sec.
+        // For 120Hz: 2 frames ≈ 16ms → clamp to 50ms → 20 updates/sec.
+        // For 8ms stepInterval, this means about 6-7 steps per UI update.
+        const stepMs = bfState.config.stepIntervalMs;
+        const desiredMinMs = 200;
+        // Compute how many frames we should skip: at least 2, and at least enough to reach 50ms.
+        const frameTime = 16.67; // ms per frame at 60Hz (conservative)
+        let frameSkip = Math.max(2, Math.ceil(desiredMinMs / frameTime));
+        // But cap it so we never go below 5 updates/sec (200ms max interval).
+        const maxMs = 800;
+        const maxFrameSkip = Math.ceil(maxMs / frameTime);
+        frameSkip = Math.min(frameSkip, maxFrameSkip);
+
+        // Ensure we still update at least once every 200ms even if stepInterval is very slow.
+        // If stepInterval is > 200ms, we refresh every step.
+        if (stepMs > maxMs) {
+            frameSkip = 1; // update every frame (but stepInterval is slow, so it's fine)
+        }
+
+        let frameCount = 0;
+        let lastUpdateTime = 0;
+
+        function renderLoop(time) {
+            if (!bfState.running) {
+                bfState.renderLoopId = null;
+                // Final refresh to show the last state
+                updateUI();
+                return;
+            }
+
+            frameCount++;
+
+            // Check if it's time to update: either we've reached the frame skip,
+            // or enough time has passed since the last update.
+            const elapsed = time - lastUpdateTime;
+            const shouldUpdate = (frameCount % frameSkip === 0) || (elapsed >= maxMs);
+
+            if (shouldUpdate) {
+                updateUI();
+                lastUpdateTime = time;
+                // Reset frame count to avoid drift
+                frameCount = 0;
+            }
+
+            bfState.renderLoopId = requestAnimationFrame(renderLoop);
+        }
+
+        bfState.renderLoopId = requestAnimationFrame(renderLoop);
     }
 
     updateUI();
@@ -755,6 +812,10 @@ function stopRunning() {
         clearInterval(bfState.renderInterval);
         bfState.renderInterval = null;
     }
+    if (bfState.renderLoopId) {
+        cancelAnimationFrame(bfState.renderLoopId);
+        bfState.renderLoopId = null;
+    }
 }
 
 // =======================================
@@ -778,26 +839,30 @@ function disableTerminalInput() {
     terminalInput.value = '';
 }
 
-function submitTerminalInput() {
+function submitTerminalInput(char=null) {
     if (!bfState.inputPending) return;
-    const raw = terminalInput.value;
+    const raw = char ? char : terminalInput.value; // if char is provided then use char, else value in terminal
     if (raw.length === 0) return;
     const ch = raw.charAt(0);
     // Clamp input byte to 0-255 (cell values wrap mod 256; & 0xFF masks to a byte).
     const codeVal = ch.charCodeAt(0) & 0xFF;
     bfState.tape[bfState.pointer] = codeVal;
     bfState.lastInput = ch;
-    bfState.output += ch;
+    l(`highlightInput truth: ${bfState.config.highlightInput}, ch truth: ${ch}, current bfState.output: ${bfState.output}`);
+    if (bfState.config.highlightInput) {
+        bfState.output += `<span class="terminal-user-input">${escapeHtml(ch)}</span>`;
+    } else {
+        bfState.output += escapeHtml(ch);
+    }
+    l(`bfState.output's real image after appending: ${bfState.output}`)
     bfState.inputPending = false;
     disableTerminalInput();
     bfState.ip++; // advance past the `,`
     pushHistory();
 
     if (bfState.startedByRun) {
-        // Run 触发的 → 输入完成后自动继续全速运行
         startRun();
     } else {
-        // Step 触发的 → 输入完成后停在原处
         bfState.status = 'paused';
         updateUI();
     }
@@ -852,7 +917,7 @@ function updateUI(isError=false, speed=null) {
     updateHighlight();
     scrollToActiveInstruction();
     renderTape();
-    outputEl.textContent = bfState.output;
+    outputEl.innerHTML = bfState.output;
 
     const cellVal = bfState.tape[bfState.pointer] ?? 0;
     const charDisplay = (cellVal >= 32 && cellVal <= 126)
@@ -1262,13 +1327,20 @@ function openSettings() {
             light: cloneSyntax(bfState.config.syntax.light)
         }
     };
-    // populate font
+    // populate list
     settingFontInput.value = bfState.config.font;
     settingFontSelect.innerHTML = '';
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '__default__';
+    defaultOption.textContent = 'Default Font';
+    settingFontSelect.appendChild(defaultOption);
+
     enumerateFonts().then(list => {
         if (list && list.length > 0) {
             settingFontSelect.hidden = false;
             settingFontInput.hidden = true;
+
             list.forEach(f => {
                 const opt = document.createElement('option');
                 opt.value = f;
@@ -1276,6 +1348,12 @@ function openSettings() {
                 if (f === bfState.config.font) opt.selected = true;
                 settingFontSelect.appendChild(opt);
             });
+
+            // also select default font if user chooses it
+            if (bfState.config.font === 'CascadiaMonoWeb') {
+                settingFontSelect.value = '__default__';
+            }
+
             // also include manual input as fallback option
             const opt = document.createElement('option');
             opt.value = '__custom__';
@@ -1293,6 +1371,7 @@ function openSettings() {
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
     settingSkipComments.checked = bfState.config.skipComments;
     settingOptimalRunning.checked = bfState.config.optimalRunning;
+    settingHighlightInput.checked = bfState.config.highlightInput;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
     updateThemePrefsStatus();
@@ -1333,7 +1412,7 @@ function cancelSettings() {
 
 function restoreDefaults() {
     // Reset config to factory defaults
-    bfState.config.font = 'Cascadia Mono';
+    bfState.config.font = 'CascadiaMonoDefault';
     bfState.config.fontSize = 16;
     bfState.config.showBackground = true;
     bfState.config.theme = 'dark';
@@ -1342,6 +1421,7 @@ function restoreDefaults() {
     bfState.config.pauseOnInput = true;
     bfState.config.skipComments = true;
     bfState.config.optimalRunning = false;
+    bfState.config.highlightInput = true;
     bfState.config.syntax.dark = cloneSyntax(DARK_SYNTAX_DEFAULT);
     bfState.config.syntax.light = cloneSyntax(LIGHT_SYNTAX_DEFAULT);
 
@@ -1353,6 +1433,7 @@ function restoreDefaults() {
     settingPauseOnInput.checked = bfState.config.pauseOnInput;
     settingSkipComments.checked = bfState.config.skipComments;
     settingOptimalRunning.checked = bfState.config.optimalRunning;
+    settingHighlightInput.checked = bfState.config.highlightInput;
     settingStepInterval.value = bfState.config.stepIntervalMs;
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
 
@@ -1382,10 +1463,14 @@ function restoreDefaults() {
 function saveSettings() {
     // font
     let font;
-    if (!settingFontSelect.hidden && settingFontSelect.value && settingFontSelect.value !== '__custom__') {
-        font = settingFontSelect.value;
-    } else {
-        font = settingFontInput.value.trim() || 'Cascadia Mono';
+    if (!settingFontSelect.hidden && settingFontSelect.value) {
+        if (settingFontSelect.value === '__default__') {
+            font = 'CascadiaMonoDefault';
+        } else if (settingFontSelect.value === '__custom__') {
+            font = settingFontInput.value.trim() || 'CascadiaMonoDefault';
+        } else {
+            font = settingFontSelect.value;
+        }
     }
     bfState.config.font = font;
 
@@ -1405,6 +1490,8 @@ function saveSettings() {
 
     // optimal running (Run mode: refresh UI every 200ms instead of every step)
     bfState.config.optimalRunning = settingOptimalRunning.checked;
+
+    bfState.config.highlightInput = settingHighlightInput.checked;
 
     // run speed (immediate effect: restart the run interval if currently running)
     const stepMs = parseInt(settingStepInterval.value, 10);
@@ -1483,7 +1570,7 @@ function clearThemePrefs() {
     localStorage.removeItem('bf-syntax-light');
 
     // Restore defaults.
-    bfState.config.font = 'Cascadia Mono';
+    bfState.config.font = 'CascadiaMonoDefault';
     bfState.config.fontSize = 16;
     bfState.config.showBackground = true;
     bfState.config.stepIntervalMs = DEFAULT_STEP_INTERVAL_MS;
@@ -1512,9 +1599,13 @@ function mergeOneSyntax(saved, base) {
 function persistConfig() {
     if (!bfState.config.saveThemePreference) return;
     try {
+        let fontToSave = bfState.config.font;
+        if (fontToSave === 'CascadiaMonoDefault') {
+            fontToSave = '__default__';
+        }
         localStorage.setItem('bf-config', JSON.stringify({
             theme: bfState.config.theme,
-            font: bfState.config.font,
+            font: fontToSave,
             fontSize: bfState.config.fontSize,
             showBackground: bfState.config.showBackground,
             stepIntervalMs: bfState.config.stepIntervalMs,
@@ -1539,8 +1630,14 @@ function loadConfig() {
         const raw = localStorage.getItem('bf-config');
         if (raw) {
             const saved = JSON.parse(raw);
+            if (saved.font) {
+                if (saved.font === '__default__') {
+                    bfState.config.font = 'CascadiaMonoDefault';
+                } else {
+                    bfState.config.font = saved.font;
+                }
+            };
             if (saved.theme === 'dark' || saved.theme === 'light') bfState.config.theme = saved.theme;
-            if (saved.font) bfState.config.font = saved.font;
             if (saved.fontSize) bfState.config.fontSize = saved.fontSize;
             if (typeof saved.showBackground === 'boolean') bfState.config.showBackground = saved.showBackground;
             if (typeof saved.stepIntervalMs === 'number' && saved.stepIntervalMs >= 8 && saved.stepIntervalMs <= 1000) bfState.config.stepIntervalMs = saved.stepIntervalMs;
@@ -1638,6 +1735,23 @@ codeInput.addEventListener('input', () => {
     updateHighlight();
 });
 
+codeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+
+        const start = codeInput.selectionStart;
+        const end = codeInput.selectionEnd;
+        const value = codeInput.value;
+
+        const spaces = '    ';
+        codeInput.value = value.slice(0, start) + spaces + value.slice(end);
+        codeInput.selectionStart = codeInput.selectionEnd = start + spaces.length;
+
+        codeInput.dispatchEvent(new Event('input'));
+        updateHighlight();
+    }
+});
+
 codeInput.addEventListener('scroll', () => {
     if (!bfState.breakpointMode) { // don't waste resource!
         syncScroll(codeInput, highlightLayer);
@@ -1666,11 +1780,11 @@ btnStepBack.addEventListener('click', stepBack);
 btnReset.addEventListener('click', resetSession);
 btnDone.addEventListener('click', endSession);
 
-// Terminal input — submitted only on Enter or Send button (no auto-submit on input).
+// Terminal input — submitted only on Enter or Send button.
 terminalInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && bfState.inputPending) {
+    if (bfState.inputPending && e.key === 'Enter') {
         e.preventDefault();
-        submitTerminalInput();
+        submitTerminalInput(terminalInput.value || '\n');
     }
 });
 

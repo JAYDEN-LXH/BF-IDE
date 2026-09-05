@@ -1,123 +1,88 @@
 #/#/#                                     #/#/#
 #/#/#       THE ECHO PROGRAM STARTS       #/#/#
 #/#/# =================================== #/#/#
-#/#/# LIMITED TO SINGLE DIGIT LENGTH ONLY #/#/#
+#/#/#       THE ECHO PROGRAM STARTS       #/#/#
 #/#/#                                     #/#/#
 
-for
-Hello(comma) User!
-the unicodes are
-H  e   l   l   o   (comma) (space) U  s   e   r   !
-72 101 108 108 111 44      32      85 115 101 114 33
-++++++++++ Initialize c0 to 10
+for "H  e   l   l   o   {comma} {space} U  s   e   r   !  {\n} {\n} Y  o   u   r   {space} N  a  m   e   :  {space}
+     72 101 108 108 111 44      32      85 115 101 114 33 10   10   89 111 117 114 32      78 97 109 101 58 32
+
+++++++++++ init c0
 [
-    >+++++++ c1 to 70 for H and U
-    >++++++++++ c2 to 100 for e l l o s e r
-    >+++ c3 to 30 for space comma !
-    <<<- decrement c0 loop counter
+    >+++++++        70; c1; for "H" in "Hello"
+    >++++++++++     100; c2; for "e" in "Hello"，"e" in User，"a" "e" in "Name"
+    >+++++++++++    110; c3; for "l" "l" "o" in "Hello"，"s" "r" in "User"，"o" "u" "r" in "Your" and "m" in "Name"
+    >++++++++       80; c4; for "U" in "User"，"Y" in "Your" and "N" in "Name"
+    >++++++         60; c5; for ":" in "Name: "
+    >++++           40; c6; for {comma} in "Hello{comma}"
+    >+++            30; c7; for {space}s and "!"
+    >+              10; c8; for {\n\n}
+    <<<<<<<<-       decrement loop counter
 ]
 
->++.             c1 72
->+.              c2 101
-+++++++..        c2 108 (double l)
-+++.             c2 111
->++++++++++++++. c3 comma 44
-------------.    c3 space 32
-<<+++++++++++++. c1 85
->++++.           c2 115
---------------.  c2 101
-+++++++++++++.   c2 114
->+.              c3 33 !
+>++.                H c1 72
+>+.                 e c2 101
+>--..              ll c3 108
++++.                o c3 111
+>>>++++.      {comma} c6 44
+>++.          {space} c7 32
+<<<+++++.           U c4 85
+<++++.              s c3 115
+<.                  e c2 101
+>-.                 r c3 114
+>>>>+.              ! c7 33
+>..              \n\n c8 10
+<<<<++++.           Y c4 89
+<---.               o c3 111
+++++++.             u c3 117
+---.                r c3 114
+>>>>-.        {space} c7 32
+<<<-----------.     N c4 78
+<<----.             a c2 97
+>-----.             m c3 114
+<++++.              e c2 101
+>>>--.              : c5 58
+>>.           {space} c7 32
+> move to c8
+[-]< clear c8
+[-]< clear c7
+[-]< clear c6
+[-]< clear c5
+[-]< clear c4
+[-]< clear c3
+[-]< clear c2
+[-]< clear c1
+[-]< clear c0
 
-[-]< clear c3 now c2
-[-]< clear c2 now c1
-[-]< clear c1 now c0
-++++++++++.. Newline (c0 now 10)
-[-] clear up 10
+>>>>>>>>>>> move to c11
 
-now at c0; we will output "Name:\n"
-For "N  a  m   e   :   \n" the asciis are:
-     78 97 109 101 58  10
-++++++++++ init loop counter
-[
-    >++++++++ 80; c1; for "N"
-    >++++++++++ 100; c2; for "a m e"
-    >++++++ 60; c3; for ":"
-    >+ 10; c4; for "\n"
-    <<<<- c0; decrement counter
-] now at c0
->--.            N;    c1
->---.           a;    c2
-++++++++++++.   m;    c2
---------.       e;    c2
->--.            ":";  c3
->..             \n\n; c4
-now at c4
-[-]< clear c4; now at c3
-[-]< clear c3; now at c2
-[-]< clear c2; now at c1
-[-]< clear c1; now at c0
-[-] clear c0 in case of any remaining bits
 
-++++++++++.. newline
-[-] clear c0
 
->>>>>>>>>>> we are now at c11 again which is zero
-which we can safely output "Your Name:\n\n" going right
+#/#/#                                     #/#/#
+#/#/#             INPUT LOOP              #/#/#
+#/#/# =================================== #/#/#
+#/#/#             INPUT LOOP              #/#/#
+#/#/#                                     #/#/#
 
-for "Y  o   u   r   space N  a  m   e   :  \n" the asciis are
-     89 111 117 114 32    78 97 109 101 58 10
-++++++++++ init loop counter at c11
-[
-    >+++++++++ 90; c12; for "Y" and "N"
-    >++++++++++ 100; c13; for "o" "u" "r" "a" "m" "e"
-    >+++ 30; c14; for space
-    >++++++ 60; c15; for ":"
-    >+ 10; c16; for \n
-    <<<<<-
-] now at c11 which is zero
->-.                  Y; c12; 89
->+++++++++++.        o; c13; 111
-++++++.              u; c13; 117
----.                 r; c13; 114
->++.                 space; c14; 32
-<<-----------.       N; c12; 78
->-----------------.  a; c13; 97
-++++++++++++.        m; c13; 109
---------.            e; c13; 101
->>--.                ":"; c15; 58
->..                  \n\n; c16; 10
-[-]< clear c16
-[-]< clear c15
-[-]< clear c14
-[-]< clear c13
-[-]< clear c12; now at c11
-[-] clear c11 in case of any remaining bits
 
-now we can be sure that no cells have any value :)
-let's do the planning
 
 C6: K (CAP)
 C7: CH (CHECK HELPER); ALWAYS ZERO!
 C8: COC1 (COPY OF CHAR)
-C9: COC2 (COPY OF CHAR)
+C9: COC2 (COPY OF CHAR; WILL BE MOVED TO CIC LATER)
 C10: T (TERMINATOR)
 C11: Z (GUARD FOR LOOP; IF ZERO THE LOOP EXITS; WE CLEAR Z WHEN WE DETECT \N)
-C12 AND SO ON: ZEROES UNTIL INPUTTED; POTENTIAL TERMINATORS!
+C12 AND SO ON: INPUT CELLS
 
 now at c11; let's init Z
 +
-<<<<< now at K (c6); let's init here
-++++++++++ this will be important!
->>>>> now at z
-
-Z IS NOW ONE WHICH IS THE EQUIVALENT OF "TRUE"
-WHEN WE DETECT NEWLINE WE WILL MAKE Z ZERO WHICH IS EQUIVALENT TO "FALSE"
 
 [ WE CHECK ON Z! Z MUST BE NONZERO UNTIL WE CONFIRM THAT \n APPEARS!
 
+    <<<<<++++++++++>>>>> restore K
+
     now at c11
-    [>] we move to next uninputted cell
+    [>] NUC
     , USER INPUT
 
     ========== check logic ==========
@@ -129,67 +94,140 @@ WHEN WE DETECT NEWLINE WE WILL MAKE Z ZERO WHICH IS EQUIVALENT TO "FALSE"
     (with truth both at original cell and copy cell)
     
     #=#=# MOVER #=#=#
-    STEP ONE: MOVE THE CURRENT CELL TO C8 AND C9
-    [ PLAN: CHECK ON CIC
-        - decrement CIC (CURRENT INPUT CELL)
-        [<] MOVE TO T
-        <+ c9 COC2
-        <+ c8 COC1
-        [>] NUC (NEXT UNINPUTTED CELL) (we won't stop at Z because z is still 1)
-        < CIC
-        CHECK ON CIC
-    ]
-    STEP TWO: MOVE COC2 TO CIC
-    [ PLAN: CHECK ON COC2
-        - decrement coc2
-        [>] move to nuc
-        < move to cic
-        + increment cic
+
+    [>+<-] move to neighbor
+    > move to neighbor
+    [
+        <+ increment cic
         [<] move to t
-        < move to coc2 (c9)
-    ] NOW AT COC2
-
-    < NOW AT COC1 WHICH IS A GOOD COPY
-
-    SUMMARY: WE NOW HAVE CIC BACK TO ORIGINAL VALUE AND COC1 AS A COPY
-    WE WILL BE WORKING ON COC1 AS A COPY SINCE CIC NEEDS TO BE UNTOUCHED
-    IN ORDER TO LET THE OUTPUT LOOP FUNCTION PROPERLY
-
+        <<+ increment coc1
+        >>>[>] move to right of neighbor
+        < move back to neighbor
+        - decrement neighbor so loop exits properly
+    ]
     #=#=# MOVER FINISHED #=#=#
-
-    WE ARE NOW AT COC1 WHICH WE WILL BE WORKING ON!
+    
+    we are now on NEIGHBOR (NUC) which is zero
+    <[<]<< move to coc1
 
     QUICK REFRESH:
                                 | we are now at COC1
                                 v
-    CELLNUM: | C6  |  C7  |   C8   | C9  | C10 | C11 |
-    VALUE:   | 10  |  00  |  ????  |  0  |  0  | 0/1 |
-    NAME:    |  K  |  CH  |  COC1  | COC2|  T  |  Z  |
+    CELLNUM: | C6  |  C7  |   C8   |  C9  | C10 | C11 |
+    VALUE:   | 10  |  00  |  ????  |  00  |  0  | 0/1 |
+    NAME:    |  K  |  CH  |  COC1  | COC2 |  T  |  Z  |
 
     OUR PLAN IS TO:
     CHECK ON K
     WE DECREMENT K
     WE SAFE MINUS COC1
 
-    [ check on K
+    <<[ check on K
         >> move into coc1
         [
             - DECREMENT COC1 (C8)
             < MOVE INTO CH WHICH IS 0 WHICH EXITS THE LOOP
-        ]
-        << move back to K
+        ] now on CH
+        < move back to K
         - decrement K
     ] THIS LOOP WILL RUN TEN TIMES AT MOST
 
     >> NOW AT COC1 (C8)
 
-    [ CLOSE Z IF COC1 IS NOT ZERO WHICH MEANS COC1 IS LESS THAN ZERO
-        >>> WE ARE AT Z (C11)
-        - WE MAKE Z ZERO!
-        < MOVE LEFT TO T WHICH ENDS THE LOOP
+    set COC2 to 1; if COC1 is not zero then clear COC2
+    if COC1 is zero then COC2 remains 1
+    then we check if COC2 is zero; if COC2 is not zero we enter the block
+    and clear Z to exit the outer input loop
+    >+< set COC2 to 1
+    [ this block only enters when COC1 is not zero
+        [-] clear COC1
+        >[-]< clear COC2
     ]
-    NOW AT T (C10)
-    i think we can move on z and it will check
+    > now we check on COC2
+    [ this block only enters when COC1 IS zero (so COC2 is still 1)
+        >>- WE CLEAR Z HERE! (now Z = 0 which will exit the outer loop)
+        <<[-] we go back to COC2 and clear it
+        >> Z (now zero)
+        >[>] NUC
+        < CIC
+        [-] clear CIC (so that the output loop doesn't output an unwanted 10)
+        <[<] Z
+        << COC2 (already zero)
+    ]
+    >>
+    we are now at Z; the outer loop will check if we cleared Z or not
+]
 
-    > NOW WE ARE AT Z
+we are now at Z; let's clear c0 to c11 to make space for output
+[-]< clear c11
+[-]< clear c10
+[-]< clear c9
+[-]< clear c8
+[-]< clear c7
+[-]< clear c6
+[-]< clear c5
+[-]< clear c4
+[-]< clear c3
+[-]< clear c2
+[-]< clear c1
+[-]  clear c0
+
+
+#/#/#                                     #/#/#
+#/#/#             OUTPUT LOOP             #/#/#
+#/#/# =================================== #/#/#
+#/#/#             OUTPUT LOOP             #/#/#
+#/#/#                                     #/#/#
+
+
+
+because user can press \n at the very first input we safety check the first cic
+back at the input loop if we detect \n then we clear cic
+so if user presses \n at the start then c12 will be 0
+>>>>>>>>>>>> c12
+[ this block only executes when c12 is not zero!
+
+    <<<<<<<<<<<< c0
+
+    we are now at c0
+    We output the user's name like this:
+
+    Hello{comma}{space}{UserInputtedName}!
+
+    First we output "Hello{comma}{space}"
+    For "H  e   l   l   o   {comma} {space}" the asciis are
+        72 101 108 108 111 44      32
+
+    ++++++++++ init c0
+    [
+        >+++++++    70; c1; for "H"
+        >++++++++++ 100; c2; for "e" "ll" "o"
+        >++++       40; c3; for comma
+        >+++        30; c4; for space
+        <<<<-
+    ]
+
+    now at c0
+    >++.         H   (c1 = 72)
+    >+.          e   (c2 = 101)
+    +++++++..    l   (c2 = 108)
+    +++.         o   (c2 = 111)
+    >++++.       comma (c3 = 44)
+    >++.         space (c4 = 32)
+
+    now we add 1 to c4 so it becomes 33 (!)
+    +        c4 = 33
+
+    <[-] clear c3
+    <[-] clear c2
+    <[-] clear c1
+    <[-] clear c0
+
+    >>>>>>>>>>>> We are now at the first inputted cell
+    [.>] we output until we reach the right of the last inputted cell
+    <[<] we move back to Z
+    <<<<<<< c4 (which holds 33)
+    . we output the last "!"
+
+    [-] we clear this cell so that the output loop exits!
 ]

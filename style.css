@@ -151,6 +151,12 @@ body.tool-mode #codeInput { pointer-events: none; }
     margin-bottom: 6px;
 }
 
+.terminal-user-input {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #70FFA2;
+    font-weight: 700;
+}
+
 .terminal-input {
     width: 100%;
     box-sizing: border-box;
@@ -927,6 +933,10 @@ body.light-theme .toolbar-section button:focus-visible {
     scrollbar-color: #555 #222;
 }
 
+#output {
+    white-space: pre;
+}
+
 /* ============================================================
    SCROLLBAR STYLES (Dark Theme)
    ============================================================ */
@@ -966,14 +976,6 @@ body.light-theme {
     color: #222;
 }
 
-body.light-theme .bf-pointer { color: #b8860b; }
-body.light-theme .bf-loop { color: #c72e1a; }
-body.light-theme .bf-inc { color: #1a7a78; }
-body.light-theme .bf-dec { color: #7b4a8e; }
-body.light-theme .bf-in { color: #1e7a4a; }
-body.light-theme .bf-out { color: #1a6ba8; }
-body.light-theme .bf-comment { color: #b85a1a; font-weight: bold; font-style: italic; }
-
 body.light-theme .dbg-status-idle { color: #334; }
 body.light-theme .dbg-status-ready { color: #007a33; }
 body.light-theme .dbg-status-running { color: #006699; }
@@ -996,10 +998,10 @@ body.light-theme .code-bg { opacity: 0.3; color: #444; }
 body.light-theme #code-bg-margin { background-color: #aaa; }
 body.light-theme .highlight-layer { color: #222; }
 
-body.light-theme .highlight-layer::-webkit-scrollbar-track {
+body.light-theme #codeInput::-webkit-scrollbar-track {
     background: #ddd;
 }
-body.light-theme .highlight-layer::-webkit-scrollbar-thumb {
+body.light-theme #codeInput::-webkit-scrollbar-thumb {
     background: #999;
     border-radius: 4px;
 }
@@ -1124,6 +1126,11 @@ body.light-theme #btn-space {
     color: #2980b9;
 }
 
+body.light-theme .terminal-user-input {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #1e7a4a;
+}
+
 /* ============================================================
    MOBILE & TABLET COMPATIBILITY CUSTOMIZATIONS
    ============================================================ */
@@ -1152,7 +1159,6 @@ body.light-theme #btn-space {
    MOBILE (<= 768px) OPTIMIZATIONS
    ============================================================ */
 @media (max-width: 768px) {
-    /* Pain 1: header — simplify title, larger touch targets, safe padding */
     #header {
         padding: 0 12px;
         box-sizing: border-box;
@@ -1180,7 +1186,6 @@ body.light-theme #btn-space {
         min-height: 44px;
     }
 
-    /* Pain 2: keyboard-open compresses debugger to status bar only */
     body.keyboard-open #debugger {
         height: auto !important;
         min-height: 0;
@@ -1198,7 +1203,6 @@ body.light-theme #btn-space {
         bottom: 0;
     }
 
-    /* Pain 4: tape cell readability */
     .tape-cell {
         min-width: 28px;
         padding: 2px;
@@ -1213,7 +1217,6 @@ body.light-theme #btn-space {
         border: 3px solid #0ff;
     }
 
-    /* Pain 5: output + terminal */
     .output {
         max-height: 20dvh;
     }
@@ -1225,7 +1228,6 @@ body.light-theme #btn-space {
         padding: 8px 16px;
     }
 
-    /* Pain 6: settings modal full-screen */
     .modal {
         width: 100vw !important;
         height: 100dvh !important;
@@ -1259,10 +1261,18 @@ body.light-theme #btn-space {
     font-family: inherit;
 }
 
-/* DEFAULT PAGE FONT */
 @font-face {
-    font-family: 'Cascadia Mono';
-    src: url('./fonts/Cascadia-Mono.woff2') format('woff2');
-    font-weight: 400;
+    font-family: 'CascadiaMonoDefault';
+    src: url('./fonts/CascadiaMono.woff2') format('woff2');
+    font-weight: 200 700;
     font-style: normal;
+    font-display: block;
+}
+
+@font-face {
+    font-family: 'CascadiaMonoDefault';
+    src: url('./fonts/CascadiaMonoItalic.woff2') format('woff2');
+    font-weight: 200 700;
+    font-style: italic;
+    font-display: block;
 }

@@ -176,11 +176,15 @@
                                         <input id="setting-step-interval-value" type="number" min="8" max="1000" value="100" class="num-value" />
                                 </label>
                                 <label class="setting-row">
-                                        <span>Optimal Running <span class="help-icon" title="Run faster by updating the UI only every 200ms instead of every step. Does not affect Step Over.">ⓘ</span></span>
+                                        <span>Optimal Running <span class="help-icon" title="Increases run speed by reducint UI refresh rate. Does not affect Step Over.">ⓘ</span></span>
                                         <input id="setting-optimal-running" type="checkbox" />
                                 </label>
+                                <label class="setting-row">
+                                        <span>Highlight User Input <span class="help-icon" title="Color user input differently from the program output.">ⓘ</span></span>
+                                        <input id="setting-highlight-input" type="checkbox" checked />
+                                </label>
                                 <details id="setting-advanced">
-                                        <summary>Custom Code Coloring <span class="help-icon" title="Customize colors and styles for each Brainfuck command.">ⓘ</span></summary>
+                                        <summary>Custom Code Styling <span class="help-icon" title="Customize colors and styles for each Brainfuck command.">ⓘ</span></summary>
                                         <div id="syntax-theme-tabs" class="syn-tabs">
                                                 <button type="button" class="syn-tab active" data-syn-theme="dark">Dark</button>
                                                 <button type="button" class="syn-tab" data-syn-theme="light">Light</button>
