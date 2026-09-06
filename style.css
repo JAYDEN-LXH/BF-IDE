@@ -179,6 +179,16 @@ body.tool-mode #codeInput { pointer-events: none; }
     box-shadow: 0 0 4px #70FFA2;
 }
 
+.terminal-output-cursor {
+    display: inline-block;
+    background-color: #0ff;
+    width: 2px;
+    height: 1.15rem;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: cursorBlink 0.8s step-end infinite;
+}
+
 .terminal-row {
     display: flex;
     gap: 8px;

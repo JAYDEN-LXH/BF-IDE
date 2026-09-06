@@ -12,7 +12,8 @@ const codeInput = document.getElementById('codeInput');
 const debuggerPanel = document.getElementById('debugger');
 const highlightLayer = document.getElementById('highlightLayer');
 const tapeEl = document.getElementById('tape');
-const outputEl = document.getElementById('output');
+// const outputEl = document.getElementById('output');
+const outputCursor = document.getElementById('terminal-output-cursor');
 const terminalInput = document.getElementById('terminal-input');
 const terminalSend = document.getElementById('terminal-send');
 const dbgStatusContainer = document.getElementById('dbg-status-container');
@@ -233,6 +234,18 @@ function deleteCharBeforeCursor() {
         codeInput.selectionStart = codeInput.selectionEnd = start - 1;
     }
     updateHighlight();
+}
+function updateTerminalCursor(override=false, value=null) {
+    let display;
+    if (override) {
+        if (value === null) {
+            display = bfState.sessionActive ? 'inline-block' : 'none';
+        }
+        display = value ? 'inline-block' : 'none';
+    } else {
+        display = bfState.sessionActive ? 'inline-block' : 'none';
+    }
+    outputCursor.style.setProperty('display', display);
 }
 
 function syncScroll(source, target) {
@@ -715,6 +728,7 @@ function runStep() {
         l('HI!');
         bfState.status = bfState.errorMsg ? 'idle' : 'finished';
         updateUI(true);
+        updateTerminalCursor(true, false);
         return;
     }
 
@@ -736,9 +750,11 @@ function runStep() {
     }
 
     if (bfState.ip >= bfState.code.length) {
+        // program finished
         stopRunning();
         bfState.status = 'finished';
         updateUI(false, false);
+        updateTerminalCursor(true, false); // hide cursor
     }
 }
 
@@ -756,6 +772,7 @@ function stepOver() {
     if (status === 'halt') {
         bfState.status = bfState.errorMsg ? 'idle' : 'finished';
         updateUI(true);
+        updateTerminalCursor(true, false);
         return;
     }
 
@@ -898,6 +915,7 @@ function submitTerminalInput(char=null) {
             stopRunning();
             bfState.status = 'finished';
             updateUI();
+            updateTerminalCursor(true, false);
         } else {
             startRun();
         }
@@ -956,7 +974,13 @@ function updateUI(isError=false, speed=null) {
     updateHighlight();
     scrollToActiveInstruction();
     renderTape();
-    outputEl.innerHTML = bfState.output;
+
+    // add program output to terminal
+    while (outputCursor.previousSibling) {
+        outputCursor.previousSibling.remove();
+    }
+    outputCursor.insertAdjacentHTML('beforebegin', bfState.output);
+    updateTerminalCursor();
 
     const cellVal = bfState.tape[bfState.pointer] ?? 0;
     const charDisplay = (cellVal >= 32 && cellVal <= 126)
@@ -1975,13 +1999,11 @@ inputToolbar.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
 
-    // 处理退格键
     if (btn.id === 'btn-clear') {
         deleteCharBeforeCursor();
         return;
     }
 
-    // 处理普通插入键
     const char = btn.dataset.bfChar;
     if (char) insertCharAtCursor(char);
 });
