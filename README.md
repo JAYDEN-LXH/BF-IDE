@@ -24,8 +24,6 @@
 
 ---
 
-![BF IDE IN ACTION](./screenshot/bfide-preview.jpeg)
-
 ## Quick Start
 
 1. Type in some Brainf\*ck code, or press **Ctrl+Alt+H** to load "Hello, World!".
