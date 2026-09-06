@@ -1263,7 +1263,7 @@ body.light-theme .terminal-user-input {
 
 @font-face {
     font-family: 'CascadiaMonoDefault';
-    src: url('./fonts/CascadiaMono.woff2') format('woff2');
+    src: url('./fonts/CascadiaMono/regular.woff2') format('woff2');
     font-weight: 200 700;
     font-style: normal;
     font-display: block;
@@ -1271,8 +1271,48 @@ body.light-theme .terminal-user-input {
 
 @font-face {
     font-family: 'CascadiaMonoDefault';
-    src: url('./fonts/CascadiaMonoItalic.woff2') format('woff2');
+    src: url('./fonts/CascadiaMono/italic.woff2') format('woff2');
     font-weight: 200 700;
     font-style: italic;
     font-display: block;
+}
+
+@font-face {
+    font-family: 'JetBrainsMonoDefault';
+    src: url('./fonts/JetBrainsMono/regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+    font-feature-settings: "liga" 0, "calt" 0;
+    font-variant-ligatures: none;
+}
+
+@font-face {
+    font-family: 'JetBrainsMonoDefault';
+    src: url('./fonts/JetBrainsMono/italic.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+    font-display: block;
+    font-feature-settings: "liga" 0, "calt" 0;
+    font-variant-ligatures: none;
+}
+
+@font-face {
+    font-family: 'JetBrainsMonoDefault';
+    src: url('./fonts/JetBrainsMono/bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: block;
+    font-feature-settings: "liga" 0, "calt" 0;
+    font-variant-ligatures: none;
+}
+
+@font-face {
+    font-family: 'JetBrainsMonoDefault';
+    src: url('./fonts/JetBrainsMono/bolditalic.woff2') format('woff2');
+    font-weight: 700;
+    font-style: italic;
+    font-display: block;
+    font-feature-settings: "liga" 0, "calt" 0;
+    font-variant-ligatures: none;
 }

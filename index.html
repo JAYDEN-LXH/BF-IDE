@@ -10,7 +10,7 @@
         <div id="code-bg-margin"></div>
         <pre class="code-bg" id="code-bg"></pre>
         <div id="header">
-            <h1 id="mainTitle">Online BF IDE</h1>
+            <h1 id="mainTitle">Online BF IDE <a href="https://github.com" target="_blank" style="color: #0ff;">GitHub</a></h1>
             <button id="toolbar-toggle" class="toolbar-toggle" type="button" title="Toggle Toolbar" aria-label="Toggle Toolbar" aria-expanded="false" aria-controls="toolbar-overlay">
                 <svg class="icon-menu"
                         xmlns="http://www.w3.org/2000/svg"
@@ -43,6 +43,9 @@
                             </button>
                             <button type="button" data-action="load-hello">
                                 Load "Hello, World!" <span class="shortcut">Ctrl+Alt+H</span>
+                            </button>
+                            <button type="button" data-action="load-long-demo">
+                                Load Long Demo <span class="shortcut">Ctrl+Alt+L</span>
                             </button>
                             <button type="button" data-action="strip-comments">
                                 Strip All Comments <span class="shortcut">Ctrl+Alt+X</span>
@@ -155,7 +158,7 @@
                                         <input id="setting-show-bg" type="checkbox" checked />
                                 </label>
                                 <label class="setting-row">
-                                        <span>Pause on input (,) <span class="help-icon" title="Pause Run when a comma instruction waits for input. Uncheck to continue running at full speed.">ⓘ</span></span>
+                                        <span>Enable input (,) <span class="help-icon" title="Check to enable input (,). Uncheck to set current cell to 0.">ⓘ</span></span>
                                         <input id="setting-pause-on-input" type="checkbox" checked />
                                 </label>
                                 <label class="setting-row">

@@ -218,7 +218,6 @@ function insertCharAtCursor(char) {
     const value = codeInput.value;
     codeInput.value = value.slice(0, start) + char + value.slice(end);
     codeInput.selectionStart = codeInput.selectionEnd = start + 1;
-    codeInput.focus();
     updateHighlight();
 }
 function deleteCharBeforeCursor() {
@@ -233,7 +232,6 @@ function deleteCharBeforeCursor() {
         codeInput.value = value.slice(0, start - 1) + value.slice(start);
         codeInput.selectionStart = codeInput.selectionEnd = start - 1;
     }
-    codeInput.focus();
     updateHighlight();
 }
 
@@ -581,26 +579,26 @@ function stepOnce() {
             // Auto-skip: write 0 and continue (no pause).
             bfState.tape[bfState.pointer] = 0;
             break;
-            case '[':
-                if (bfState.tape[bfState.pointer] === 0) {
-                    const m = bfState.bracketMap[bfState.ip];
-                    if (m === -1) {
-                        bfState.errorMsg = `Unmatched '[' at position ${bfState.ip}`;
-                        return 'halt';
-                    }
-                    bfState.ip = m;
+        case '[':
+            if (bfState.tape[bfState.pointer] === 0) {
+                const m = bfState.bracketMap[bfState.ip];
+                if (m === -1) {
+                    bfState.errorMsg = `Unmatched '[' at position ${bfState.ip}`;
+                    return 'halt';
                 }
-                break;
-            case ']':
-                if (bfState.tape[bfState.pointer] !== 0) {
-                    const m = bfState.bracketMap[bfState.ip];
-                    if (m === -1) {
-                        bfState.errorMsg = `Unmatched ']' at position ${bfState.ip}`;
-                        return 'halt';
-                    }
-                    bfState.ip = m;
+                bfState.ip = m;
+            }
+            break;
+        case ']':
+            if (bfState.tape[bfState.pointer] !== 0) {
+                const m = bfState.bracketMap[bfState.ip];
+                if (m === -1) {
+                    bfState.errorMsg = `Unmatched ']' at position ${bfState.ip}`;
+                    return 'halt';
                 }
-                break;            
+                bfState.ip = m;
+            }
+            break;
         // non-command chars: ignored (comments)
     }
     bfState.ip++;
@@ -816,6 +814,41 @@ function stopRunning() {
         cancelAnimationFrame(bfState.renderLoopId);
         bfState.renderLoopId = null;
     }
+}
+
+// =======================================
+// LOAD LONG DEMO
+// =======================================
+
+function actionLoadLongDemo() {
+    fetch('./example.bf')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load example.bf');
+            return response.text();
+        })
+        .then(code => {
+            stopRunning();
+            codeInput.value = code;
+            codeInput.readOnly = false;
+            bfState.sessionActive = false;
+            bfState.tape = [0];
+            bfState.pointer = 0;
+            bfState.ip = 0;
+            bfState.output = '';
+            bfState.history = [];
+            bfState.historyIndex = -1;
+            bfState.inputPending = false;
+            bfState.lastInput = null;
+            bfState.breakpoints.clear();
+            bfState.status = 'ready';
+            disableTerminalInput();
+            updateHighlight();
+            updateUI();
+        })
+        .catch(err => {
+            console.error('Failed to load long demo:', err);
+            alert('Failed to load the long demo file. Please check the console for details.');
+        });
 }
 
 // =======================================
@@ -1171,6 +1204,7 @@ function handleMenuAction(action) {
         case 'start-over': actionStartOver(); break;
         case 'load-file': actionLoadFile(); break;
         case 'load-hello': actionLoadHello(); break;
+        case 'load-long-demo': actionLoadLongDemo(); break;
         case 'strip-comments': stripComments(); break;
         case 'breakpoint-mode': toggleBreakpointMode(); break;
         case 'tool-mode': toggleToolMode(); break;
@@ -1327,19 +1361,29 @@ function openSettings() {
             light: cloneSyntax(bfState.config.syntax.light)
         }
     };
-    // populate list
+
+    // populate font list
     settingFontInput.value = bfState.config.font;
     settingFontSelect.innerHTML = '';
 
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '__default__';
-    defaultOption.textContent = 'Default Font';
-    settingFontSelect.appendChild(defaultOption);
+    const defaultFonts = [
+        { value: 'CascadiaMonoDefault', label: 'Default Font 1 (Cascadia Mono)' },
+        { value: 'JetBrainsMonoDefault', label: 'Default Font 2 (JetBrains Mono)' },
+    ];
+    defaultFonts.forEach(df => {
+        const opt = document.createElement('option');
+        opt.value = df.value;
+        opt.textContent = df.label;
+        if (bfState.config.font === df.value) opt.selected = true;
+        settingFontSelect.appendChild(opt);
+    });
 
     enumerateFonts().then(list => {
         if (list && list.length > 0) {
-            settingFontSelect.hidden = false;
-            settingFontInput.hidden = true;
+            const sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '──────────';
+            settingFontSelect.appendChild(sep);
 
             list.forEach(f => {
                 const opt = document.createElement('option');
@@ -1348,20 +1392,20 @@ function openSettings() {
                 if (f === bfState.config.font) opt.selected = true;
                 settingFontSelect.appendChild(opt);
             });
+        }
 
-            // also select default font if user chooses it
-            if (bfState.config.font === 'CascadiaMonoWeb') {
-                settingFontSelect.value = '__default__';
-            }
+        const customOpt = document.createElement('option');
+        customOpt.value = '__custom__';
+        customOpt.textContent = 'Custom...';
+        if (bfState.config.font === '__custom__') customOpt.selected = true;
+        settingFontSelect.appendChild(customOpt);
 
-            // also include manual input as fallback option
-            const opt = document.createElement('option');
-            opt.value = '__custom__';
-            opt.textContent = 'Custom...';
-            settingFontSelect.appendChild(opt);
-        } else {
-            settingFontSelect.hidden = true;
-            settingFontInput.hidden = false;
+        settingFontSelect.hidden = false;
+        settingFontInput.hidden = true;
+
+        const allValues = Array.from(settingFontSelect.options).map(o => o.value);
+        if (!allValues.includes(bfState.config.font) && bfState.config.font !== '__custom__') {
+            settingFontSelect.value = 'CascadiaMonoDefault';
         }
     });
 
@@ -1376,9 +1420,7 @@ function openSettings() {
     settingStepIntervalValue.value = bfState.config.stepIntervalMs;
     updateThemePrefsStatus();
 
-    // Initialize syntax tab to match current UI theme, then populate
     setSyntaxTabActive(bfState.config.theme);
-
     settingsModal.hidden = false;
 }
 
@@ -1464,13 +1506,13 @@ function saveSettings() {
     // font
     let font;
     if (!settingFontSelect.hidden && settingFontSelect.value) {
-        if (settingFontSelect.value === '__default__') {
-            font = 'CascadiaMonoDefault';
-        } else if (settingFontSelect.value === '__custom__') {
+        if (settingFontSelect.value === '__custom__') {
             font = settingFontInput.value.trim() || 'CascadiaMonoDefault';
         } else {
-            font = settingFontSelect.value;
+            font = settingFontSelect.value; // 直接取 'CascadiaMonoDefault' 或 'JetBrainsMonoDefault'
         }
+    } else {
+        font = bfState.config.font || 'CascadiaMonoDefault';
     }
     bfState.config.font = font;
 
@@ -1509,9 +1551,9 @@ function saveSettings() {
 
     applyConfig();
     updateHighlight();
-    persistConfig(); // persist all settings (including restored defaults) to localStorage
+    persistConfig();
     updateThemePrefsStatus();
-    settingsSnapshot = null; // changes committed; discard snapshot
+    settingsSnapshot = null;
     closeSettings();
 }
 
@@ -1600,9 +1642,10 @@ function persistConfig() {
     if (!bfState.config.saveThemePreference) return;
     try {
         let fontToSave = bfState.config.font;
-        if (fontToSave === 'CascadiaMonoDefault') {
+        if (fontToSave === 'CascadiaMonoDefault' || fontToSave === 'JetBrainsMonoDefault') {
             fontToSave = '__default__';
         }
+
         localStorage.setItem('bf-config', JSON.stringify({
             theme: bfState.config.theme,
             font: fontToSave,
@@ -1612,6 +1655,7 @@ function persistConfig() {
             pauseOnInput: bfState.config.pauseOnInput,
             skipComments: bfState.config.skipComments,
             optimalRunning: bfState.config.optimalRunning,
+            highlightInput: bfState.config.highlightInput,
             syntax: {
                 dark: bfState.config.syntax.dark,
                 light: bfState.config.syntax.light
@@ -1636,7 +1680,7 @@ function loadConfig() {
                 } else {
                     bfState.config.font = saved.font;
                 }
-            };
+            }
             if (saved.theme === 'dark' || saved.theme === 'light') bfState.config.theme = saved.theme;
             if (saved.fontSize) bfState.config.fontSize = saved.fontSize;
             if (typeof saved.showBackground === 'boolean') bfState.config.showBackground = saved.showBackground;
@@ -2045,6 +2089,13 @@ document.addEventListener('keydown', (e) => {
     if (ctrl && alt && (e.key === 'H' || e.key === 'h')) {
         e.preventDefault();
         actionLoadHello();
+        return;
+    }
+
+    // Ctrl+Alt+L — Load Long Demo
+    if (ctrl && alt && (e.key === 'L' || e.key === 'l')) {
+        e.preventDefault();
+        actionLoadLongDemo();
         return;
     }
 

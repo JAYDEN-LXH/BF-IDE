@@ -67,9 +67,9 @@ for "H  e   l   l   o   {comma} {space} U  s   e   r   !  {\n} {\n} Y  o   u   r
 
 
 C6: K (CAP)
-C7: CH (CHECK HELPER); ALWAYS ZERO!
+C7: 0
 C8: COC1 (COPY OF CHAR)
-C9: COC2 (COPY OF CHAR; WILL BE MOVED TO CIC LATER)
+C9: VH (VERIFY HELPER)
 C10: T (TERMINATOR)
 C11: Z (GUARD FOR LOOP; IF ZERO THE LOOP EXITS; WE CLEAR Z WHEN WE DETECT \N)
 C12 AND SO ON: INPUT CELLS
@@ -110,49 +110,37 @@ now at c11; let's init Z
     we are now on NEIGHBOR (NUC) which is zero
     <[<]<< move to coc1
 
-    QUICK REFRESH:
-                                | we are now at COC1
-                                v
-    CELLNUM: | C6  |  C7  |   C8   |  C9  | C10 | C11 |
-    VALUE:   | 10  |  00  |  ????  |  00  |  0  | 0/1 |
-    NAME:    |  K  |  CH  |  COC1  | COC2 |  T  |  Z  |
-
-    OUR PLAN IS TO:
-    CHECK ON K
-    WE DECREMENT K
-    WE SAFE MINUS COC1
-
-    <<[ check on K
+    <<[ run till K is fully decremented
         >> move into coc1
         [
             - DECREMENT COC1 (C8)
-            < MOVE INTO CH WHICH IS 0 WHICH EXITS THE LOOP
-        ] now on CH
+            < MOVE INTO C7 WHICH IS 0 WHICH EXITS THE LOOP
+        ] now on C7
         < move back to K
         - decrement K
     ] THIS LOOP WILL RUN TEN TIMES AT MOST
 
     >> NOW AT COC1 (C8)
 
-    set COC2 to 1; if COC1 is not zero then clear COC2
-    if COC1 is zero then COC2 remains 1
-    then we check if COC2 is zero; if COC2 is not zero we enter the block
+    set VH to 1; if COC1 is not zero then clear VH
+    if COC1 is zero then VH remains 1
+    then we check if VH is zero; if VH is not zero we enter the block
     and clear Z to exit the outer input loop
-    >+< set COC2 to 1
+    >+< set VH to 1
     [ this block only enters when COC1 is not zero
         [-] clear COC1
-        >[-]< clear COC2
+        >[-]< clear VH
     ]
-    > now we check on COC2
-    [ this block only enters when COC1 IS zero (so COC2 is still 1)
+    > now we check on VH
+    [ this block only enters when COC1 IS zero (so VH is still 1)
         >>- WE CLEAR Z HERE! (now Z = 0 which will exit the outer loop)
-        <<[-] we go back to COC2 and clear it
+        <<[-] we go back to VH and clear it
         >> Z (now zero)
         >[>] NUC
         < CIC
         [-] clear CIC (so that the output loop doesn't output an unwanted 10)
         <[<] Z
-        << COC2 (already zero)
+        << VH (already zero)
     ]
     >>
     we are now at Z; the outer loop will check if we cleared Z or not
@@ -229,5 +217,5 @@ so if user presses \n at the start then c12 will be 0
     <<<<<<< c4 (which holds 33)
     . we output the last "!"
 
-    [-] we clear this cell so that the output loop exits!
+    [-] clear cell to exit loop
 ]
