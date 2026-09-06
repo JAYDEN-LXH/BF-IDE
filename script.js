@@ -894,7 +894,13 @@ function submitTerminalInput(char=null) {
     pushHistory();
 
     if (bfState.startedByRun) {
-        startRun();
+        if (bfState.ip >= bfState.code.length) {
+            stopRunning();
+            bfState.status = 'finished';
+            updateUI();
+        } else {
+            startRun();
+        }
     } else {
         bfState.status = 'paused';
         updateUI();
