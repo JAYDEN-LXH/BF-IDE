@@ -1312,7 +1312,7 @@ body.light-theme .terminal-user-input {
     src: url('./fonts/JetBrainsMono/bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
-    font-display: block;
+    font-display: swap;
     font-feature-settings: "liga" 0, "calt" 0;
     font-variant-ligatures: none;
 }
@@ -1322,7 +1322,7 @@ body.light-theme .terminal-user-input {
     src: url('./fonts/JetBrainsMono/bolditalic.woff2') format('woff2');
     font-weight: 700;
     font-style: italic;
-    font-display: block;
+    font-display: swap;
     font-feature-settings: "liga" 0, "calt" 0;
     font-variant-ligatures: none;
 }
