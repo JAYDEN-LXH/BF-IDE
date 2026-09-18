@@ -1,0 +1,165 @@
+"""Hot Encoding"""
+
+from sys import exit
+
+# if you see this and want to use hot please use ed.py
+if __name__ == "__main__":
+    print("Hot Encoding (hot.py) is supposed to be used as a module, rather")
+    print("than ran directly.")
+    print("Please use ed.py for Son/Hot CLI interactive tour.")
+    exit()
+
+from numpy import base_repr as br
+from time import sleep
+try:
+    from pyperclip import copy
+except ImportError:
+    pass
+
+def trycopy(copyt: str) -> None:
+    try:
+        copy(copyt)
+        return True
+    except:
+        return False
+
+def b62(n: int) -> str:
+    ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    assert len(ALPHABET) == 62, "Alphabet is illegal!"
+    if n == 0:
+        return "0"
+    assert n > 0, "Cannot process negative numbers"
+    digits = []
+    while n:
+        n, r = divmod(n, 62)
+        digits.append(ALPHABET[r])
+    return "".join(reversed(digits))
+
+def hascomment(raw: str) -> bool | int:
+    return raw.find("、") if raw.find("、") != -1 else False
+
+def main():
+    print("HOT!")
+    while True:
+        print("(E)ncode or (D)ecode? (e/d, or (q)uit)")
+        ed = input("> ").lower()
+        if ed == 'e':
+            print("Wanna copy? (Press Enter to agree, or type anything to disagree, or q to quit)")
+            want_copy = input("> ")
+            if want_copy:
+                if want_copy == 'q':
+                    exit()
+                want_copy = False
+            else: want_copy = True
+            if want_copy: print("We'll be copying!")
+            print("Enter Raw:")
+            raw = input("> ")
+            print("\n\n")
+            sleep(2)
+            ree = enc(raw, raw, want_copy)
+            print(ree[0])
+            if ree[1]: print("\nCopied to clipboard.")
+            print("\n\n")
+        elif ed == 'd':
+            print("Wanna copy? (Press Enter to agree, or type anything to disagree, or q to quit)")
+            want_copy = input("> ")
+            if want_copy:
+                if want_copy == 'q':
+                    exit()
+                want_copy = False
+            else: want_copy = True
+            if want_copy: print("We'll be copying!")
+            print("Enter Encoded:")
+            encoded = input("> ")
+            print("\n\n")
+            sleep(2)
+            ree = decode(encoded, want_copy)
+            print(ree[0])
+            if ree[1]: print("\nCopied to clipboard.")
+            print("\n\n")
+        elif ed == 'q':
+            exit()
+        else:
+            print("Invalid.", end=" ")
+
+def enc(raw: str, comment: str = "", newline: bool = False, copy: bool = False):
+    if newline:
+        raw += "\n" # add \n for encoding
+    r = []
+    comstr = f" 、 {raw}{"\\n" if newline else ""} 、" if comment else ""
+    for j, c in enumerate(raw):
+        key = (j % 9) + 1
+        o = ord(c) * key
+        binary  = br(o, 2)
+        ternary = br(o, 3)
+        senary  = br(o, 6)
+
+        long = len(max(binary, ternary, senary, key=len))
+        binary, ternary, senary = [cur.ljust(long, "?") for cur in [binary, ternary, senary]]
+
+        zipped = zip(binary, ternary, senary)
+        cl = [list(reversed(list(tup))) for tup in zipped]
+        cr = ""
+        for ls in cl: cr += ls[0]
+        for ls in cl: cr += ls[1]
+        for ls in cl: cr += ls[2]
+        r.append(cr)
+
+    joined = "".join(r)
+    allnums = "".join(ch for ch in joined if ch.isalnum())
+    all62 = b62(int(allnums or "0"))
+
+    digit_sum = sum(int(ch) for ch in all62 if ch.isdecimal())
+    check = str(digit_sum % 10)
+
+    longest_seg = max(r, key=len)
+    last_seg = br(len(raw), 24).ljust(len(longest_seg), "$") # 24 is hard coded
+
+    hh = "!".join(r) + "!" + check + "|" + last_seg + comstr
+
+    copied = False
+    if copy: copied = trycopy(hh)
+    return hh, copied
+
+def decode(hh: str, copy: bool = False):
+    comments = hh.find("、")
+    if comments != -1:
+        hh = hh[: comments].strip().replace(" ", "")
+    main_part, last_seg_part = hh.split("|")
+    stripped_last = last_seg_part.rstrip("$")
+    expected_raw_len = int(stripped_last, 24)
+    parts = main_part.split("!")
+    check = parts[-1]
+    segments = parts[:-1]
+    joined = "".join(segments)
+    allnums = "".join(ch for ch in joined if ch.isalnum())
+    all62 = b62(int(allnums or "0"))
+    digit_sum = sum(int(ch) for ch in all62 if ch.isdecimal())
+    expected = str(digit_sum % 10)
+    if check != expected:
+        raise ValueError(f"check failed: expecting {expected}, received {check}")
+    result = ""
+    for j, seg in enumerate(segments):
+        if not seg:
+            continue
+        key = (j % 9) + 1
+        n = len(seg) // 3
+        senary = seg[:n].replace("?", "")
+        ternary = seg[n:2*n].replace("?", "")
+        binary = seg[2*n:].replace("?", "")
+        o1 = int(binary, 2)
+        o2 = int(ternary, 3)
+        o3 = int(senary, 6)
+        if not (o1 == o2 == o3):
+            raise ValueError(f"段 {j} 不一致: {o1}, {o2}, {o3}")
+        result += chr(o1 // key)
+    if len(result) != expected_raw_len:
+        raise ValueError(f"Length validation failed: metadata‑recorded length={expected_raw_len}, decoded result length={len(result)}")
+    copied = False
+    if copy:
+        copied = trycopy(result)
+    return result, copied
+
+
+# if __name__ == "__main__":
+#     main()

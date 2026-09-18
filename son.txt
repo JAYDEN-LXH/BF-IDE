@@ -1,0 +1,108 @@
+"""Son Encoding"""
+
+from sys import exit
+
+# if you see this and want to use son please use ed.py
+if __name__ == "__main__":
+    print("Son Encoding (son.py) is supposed to be used as a module, rather")
+    print("than ran directly.")
+    print("Please use ed.py for Son/Hot CLI interactive tour.")
+    exit()
+
+from numpy import base_repr
+from time import sleep
+try:
+    from pyperclip import copy
+except:
+    pass
+b, c, d, h = chr(0x200b), chr(0x200c), chr(0x200d), chr(0x2011)
+s = lambda n: base_repr(n, 6)
+n = lambda n: base_repr(n, 9)
+
+def trycopy(copyt: str) -> None:
+    try:
+        copy(copyt)
+        return True
+    except:
+        return False
+
+def hascomment(raw: str) -> bool | int:
+    return raw.find("、") if raw.find("、") != -1 else False
+
+def main():
+    print("son encoding!")
+    while True:
+        print("(E)ncode or (D)ecode? (e/d, or (q)uit)")
+        ii = input("> ").lower()
+        if ii == 'e':
+            print("Enter raw:")
+            raw = input("> ")
+            ree = enc(raw, raw)
+        elif ii == 'd':
+            print("Enter encoded:")
+            encc = input("> ")
+            ree = decode(encc)
+        elif ii == 'q':
+            print("Exiting.")
+            exit()
+        else:
+            print("Invalid.")
+            continue
+        print("\n\n")
+        sleep(1)
+        print(ree[0])
+        try:
+            from pyperclip import copy
+            copy(ree)
+            print("\n\n")
+            print("Copied successfully.")
+        except:
+            pass
+
+def enc(i, comment: str = "", newline: bool = False, copy: bool = False):
+    r = ""
+    comstr = f" 、 {comment}{"\\n" if newline else ""} 、" if comment else ""
+    for j, ch in enumerate(i):
+        o = ord(ch) * 13
+        v = o % 3
+        if v == 0:
+            r += f"{b}{s(o)}"
+        elif v == 1:
+            r += f"{c}{oct(o)[2:]}"
+        else:
+            r += f"{d}{n(o)}"
+        if j != len(i) - 1:
+            r += h
+
+    copied = False
+    r += comstr
+    if copy: copied = trycopy(r)
+    return r, copied
+
+def decode(raw: str, copy: bool = False):
+    comments = raw.find("、")
+    if comments != -1:
+        raw = raw[: comments].strip().replace(" ", "")
+    parts = raw.split(h)
+    result = ""
+    for part in parts:
+        if not part:
+            continue
+        prefix = part[0]
+        payload = part[1:]
+        if prefix == b:
+            o = int(payload, 6)
+        elif prefix == c:
+            o = int(payload, 8)
+        elif prefix == d:
+            o = int(payload, 9)
+        else:
+            raise ValueError(f"Unknown prefix: {hex(ord(prefix))}")
+        result += chr(o // 13)
+    copied = False
+    if copy:
+        copied = trycopy(result)
+    return result, copied
+
+# if __name__ == "__main__":
+#     main()
